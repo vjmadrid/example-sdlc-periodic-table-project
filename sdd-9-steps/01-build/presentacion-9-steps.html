@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Periodic Table · Los 9 pasos</title>
+<style>
+:root{
+  --bg:#f6f4ef; --surface:#ffffff; --ink:#1f2430; --muted:#5d6577; --line:#dcd8cc;
+  --accent:#3b5bdb; --accent-soft:#e3e8fc; --ok:#2b8a3e; --ok-soft:#dcf2e1; --bad:#c92a2a; --bad-soft:#fbe3e3; --warn:#b36b00; --warn-soft:#fdf0d5;
+  --c1:#cfe8ff; --c2:#d8f5d0; --c3:#fff1c2; --c4:#ffd9d9; --c5:#e6d9ff;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161c; --surface:#1d2029; --ink:#eceef4; --muted:#9aa2b5; --line:#343949;
+    --accent:#8aa2ff; --accent-soft:#272e52; --ok:#6fcf86; --ok-soft:#1d3a26; --bad:#ff8787; --bad-soft:#442226; --warn:#f0b255; --warn-soft:#41331a;
+    --c1:#27405c; --c2:#2a4a2a; --c3:#52461f; --c4:#573030; --c5:#40335e;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14161c; --surface:#1d2029; --ink:#eceef4; --muted:#9aa2b5; --line:#343949;
+  --accent:#8aa2ff; --accent-soft:#272e52; --ok:#6fcf86; --ok-soft:#1d3a26; --bad:#ff8787; --bad-soft:#442226; --warn:#f0b255; --warn-soft:#41331a;
+  --c1:#27405c; --c2:#2a4a2a; --c3:#52461f; --c4:#573030; --c5:#40335e;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:17px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+.bar{position:fixed;top:0;left:0;height:4px;background:var(--accent);transition:width .3s;z-index:5}
+header.top{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:14px 24px;font-size:13px;color:var(--muted);z-index:4}
+header.top button{font:inherit}
+.deck{height:100%;position:relative}
+.slide{position:absolute;inset:0;padding:64px 8vw 84px;overflow-y:auto;opacity:0;visibility:hidden;transform:translateX(30px);transition:opacity .35s,transform .35s,visibility .35s}
+.slide.active{opacity:1;visibility:visible;transform:none}
+.slide.past{transform:translateX(-30px)}
+.wrap{max-width:1040px;margin:0 auto}
+.kicker{display:inline-block;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:3px 10px;border-radius:99px}
+h1{font-size:clamp(34px,5vw,58px);line-height:1.1;margin:.3em 0 .2em}
+h2{font-size:clamp(26px,3.4vw,38px);line-height:1.2;margin:.35em 0 .3em}
+h3{font-size:18px;margin:0 0 6px}
+p{margin:.4em 0}
+.lead{font-size:20px;color:var(--muted)}
+.exit{display:inline-flex;gap:8px;align-items:center;font:600 13px ui-monospace,Menlo,monospace;color:var(--ok);background:var(--ok-soft);padding:4px 10px;border-radius:6px}
+.q{font-style:italic;color:var(--muted)}
+.grid{display:grid;gap:16px;margin:18px 0}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.card.ok{border-left:4px solid var(--ok)} .card.bad{border-left:4px solid var(--bad)} .card.warn{border-left:4px solid var(--warn)} .card.acc{border-left:4px solid var(--accent)}
+ul{padding-left:20px;margin:.4em 0} li{margin:.25em 0}
+code{font:14px ui-monospace,Menlo,monospace;background:var(--accent-soft);padding:1px 6px;border-radius:5px}
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:15px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--bg)}
+tr:last-child td{border-bottom:0}
+.tag{font:600 12px system-ui;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.tag.ok{background:var(--ok-soft);color:var(--ok)} .tag.bad{background:var(--bad-soft);color:var(--bad)} .tag.warn{background:var(--warn-soft);color:var(--warn)}
+button.btn,.seg button{font:inherit;cursor:pointer;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px}
+button.btn:hover,.seg button:hover{border-color:var(--accent)}
+.seg{display:inline-flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+svg{max-width:100%;height:auto;display:block}
+svg text{fill:var(--ink);font-family:system-ui,sans-serif}
+svg .mut{fill:var(--muted)}
+.nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:14px;padding:14px;background:linear-gradient(transparent,var(--bg) 40%);z-index:4}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:60vw}
+.dots button{width:12px;height:12px;border-radius:50%;border:0;background:var(--line);cursor:pointer;padding:0}
+.dots button.on{background:var(--accent);transform:scale(1.3)}
+.dots button:hover{background:var(--muted)}
+.hint{font-size:13px;color:var(--muted)}
+/* mini table */
+.pt{display:grid;grid-template-columns:repeat(18,1fr);gap:3px;max-width:760px}
+.pt i{aspect-ratio:1;border-radius:3px;background:var(--c1);transition:opacity .25s,outline .25s}
+.pt i.e{background:transparent}
+.pt i.f{background:var(--c5)} .pt i.nm{background:var(--c4)} .pt i.mt{background:var(--c3)} .pt i.nb{background:var(--c2)}
+.pt i.gap{background:transparent;border:1px dashed var(--line)}
+.pt.hl-main i.f{opacity:.15} .pt.hl-f i:not(.f):not(.gap){opacity:.15}
+.pt.hl-f i.f{outline:2px solid var(--accent)}
+/* flow */
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
+.flow .n{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:15px}
+.flow .a{color:var(--muted)}
+.bar-row{display:flex;align-items:center;gap:10px;margin:8px 0;font:14px ui-monospace,Menlo,monospace}
+.bar-row .lb{width:150px}
+.bar-row .tr{flex:1;background:var(--line);border-radius:6px;overflow:hidden;height:22px}
+.bar-row .fl{height:100%;background:var(--accent);width:0;transition:width .8s;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;color:#fff;font-size:12px}
+.slide:not(.active) .bar-row .fl{width:0!important}
+.detail{min-height:70px}
+@media (max-width:640px){.slide{padding:56px 20px 90px}.bar-row .lb{width:100px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="bar" id="bar"></div>
+<header class="top">
+  <span>Periodic Table · SDD en 9 pasos</span>
+  <span><button class="btn" id="theme" aria-label="Cambiar tema">◐ Tema</button></span>
+</header>
+
+<main class="deck" id="deck">
+
+<!-- 0 PORTADA -->
+<section class="slide" data-title="Portada"><div class="wrap">
+  <span class="kicker">Spec Driven Development</span>
+  <h1>Tabla Periódica interactiva<br>en 9 pasos</h1>
+  <p class="lead">Del problema al cierre: cómo un flujo OpenSpec convierte una idea familiar en una app estática, verificada y archivada.</p>
+  <div class="grid g3">
+    <div class="card"><h3>Stack</h3>HTML + CSS3 + JavaScript Vanilla. Sin servidor ni frameworks.</div>
+    <div class="card"><h3>Objetivo didáctico</h3>Interiorizar el flujo OpenSpec, no producir un producto perfecto.</div>
+    <div class="card"><h3>Change</h3><code>build-periodic-table-web-app</code></div>
+  </div>
+  <p class="hint">Navega con ← → · Espacio · Inicio/Fin · clic en los puntos inferiores</p>
+</div></section>
+
+<!-- 0b CICLO -->
+<section class="slide" data-title="El ciclo"><div class="wrap">
+  <span class="kicker">Visión general</span>
+  <h2>El ciclo de vida: cada paso termina con una señal de salida</h2>
+  <p class="lead">Un paso no avanza hasta emitir su "exit". Haz clic en un paso para saltar a él.</p>
+  <svg viewBox="0 0 960 250" role="img" aria-label="Diagrama de los 9 pasos y sus señales de salida" id="cycle"></svg>
+  <div class="grid g3">
+    <div class="card acc"><h3>Pasos 1–4 · Pensar</h3>Qué problema, qué opciones, qué contrato, qué diseño.</div>
+    <div class="card acc"><h3>Pasos 5–6 · Construir</h3>Dividir en tareas e implementarlas.</div>
+    <div class="card acc"><h3>Pasos 7–9 · Cerrar</h3>Verificar, liberar y aprender.</div>
+  </div>
+</div></section>
+
+<!-- 1 DISCOVERY -->
+<section class="slide" data-title="1 · Discovery"><div class="wrap">
+  <span class="kicker">Paso 1 · Discovery</span>
+  <h2>¿Qué problema resolvemos y por qué importa?</h2>
+  <p><span class="exit">✔ DISCOVERY READY</span></p>
+  <svg viewBox="0 0 960 190" role="img" aria-label="Problema, necesidades y resultado esperado">
+    <defs><marker id="ar1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
+    <rect x="10" y="30" width="270" height="130" rx="12" fill="var(--bad-soft)" stroke="var(--bad)"/>
+    <text x="30" y="62" font-weight="700" font-size="17">Problema</text>
+    <text x="30" y="90" font-size="14">No hay implementación.</text>
+    <text x="30" y="112" font-size="14">Consultar elementos rápido,</text>
+    <text x="30" y="132" font-size="14">sin instalar ni levantar nada.</text>
+    <line x1="285" y1="95" x2="340" y2="95" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar1)"/>
+    <rect x="345" y="30" width="270" height="130" rx="12" fill="var(--accent-soft)" stroke="var(--accent)"/>
+    <text x="365" y="62" font-weight="700" font-size="17">Necesidades</text>
+    <text x="365" y="88" font-size="14">• 118 elementos en su posición</text>
+    <text x="365" y="108" font-size="14">• Buscar por nombre/símbolo/nº</text>
+    <text x="365" y="128" font-size="14">• Ver detalle sin alterar la tabla</text>
+    <text x="365" y="148" font-size="14">• Experiencia visual atractiva</text>
+    <line x1="620" y1="95" x2="675" y2="95" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar1)"/>
+    <rect x="680" y="30" width="270" height="130" rx="12" fill="var(--ok-soft)" stroke="var(--ok)"/>
+    <text x="700" y="62" font-weight="700" font-size="17">Resultado</text>
+    <text x="700" y="92" font-size="14">Un archivo local que se abre</text>
+    <text x="700" y="112" font-size="14">y funciona de inmediato</text>
+    <text x="700" y="132" font-size="14">(offline).</text>
+  </svg>
+  <div class="grid g2">
+    <div class="card"><h3>Por qué este proyecto</h3><ul><li>Familiar: todos entienden una tabla de elementos.</li><li>Permite iterar feature a feature.</li><li>El foco es el flujo, no el producto.</li></ul></div>
+    <div class="card warn"><h3>Pregunta abierta</h3>¿Qué datos "adicionales" por elemento? <br><span class="tag ok">Resuelta en diseño</span> electronegatividad y configuración electrónica.</div>
+  </div>
+</div></section>
+
+<!-- 2 IDEATION -->
+<section class="slide" data-title="2 · Ideation"><div class="wrap">
+  <span class="kicker">Paso 2 · Ideation</span>
+  <h2>¿Qué podríamos hacer? Cinco alternativas, dos decisiones</h2>
+  <p><span class="exit">✔ SOLUTION DIRECTION READY</span></p>
+  <p class="q">Haz clic en una alternativa para ver el motivo.</p>
+  <div class="grid g3" id="alts"></div>
+  <div class="card detail" id="altDetail" aria-live="polite">Selecciona una alternativa.</div>
+  <div class="grid g2">
+    <div class="card"><h3>Supuestos</h3><ul><li>Los 118 elementos caben en un único array local.</li><li>El scroll horizontal es aceptable en pantallas estrechas.</li></ul></div>
+    <div class="card"><h3>Referencias</h3>Research Log en <code>DESIGN.md</code>: panel lateral, tabla centrada y bloque f separado.</div>
+  </div>
+</div></section>
+
+<!-- 2b PROPOSAL -->
+<section class="slide" data-title="2b · Proposal"><div class="wrap">
+  <span class="kicker">Entregable · proposal.md</span>
+  <h2>La propuesta formaliza la dirección elegida</h2>
+  <p><span class="exit">✔ PROPOSAL READY</span> <code>openspec/changes/build-periodic-table-web-app/proposal.md</code></p>
+  <div class="grid g2">
+    <div class="card acc"><h3>Why</h3>Tabla periódica clara, explorable y usable sin servidor, con experiencia visual atractiva.</div>
+    <div class="card acc"><h3>Impacto</h3>Sin APIs, backend, framework ni dependencias externas.</div>
+  </div>
+  <h3>What changes</h3>
+  <ul>
+    <li>App estática con los 118 elementos, fondo claro y pasteles por categoría.</li>
+    <li>Lantánidos y actínidos en filas separadas.</li>
+    <li>Buscador en tiempo real y panel de detalles estable.</li>
+  </ul>
+  <h3>Capabilities nuevas</h3>
+  <div class="flow"><span class="n">periodic-table-display</span><span class="n">element-search</span><span class="n">element-details-panel</span></div>
+  <div class="card warn"><h3>Nota de trazabilidad</h3>La propuesta cita <code>app.js</code>; el diseño y la implementación usan <code>script.js</code>.</div>
+</div></section>
+
+<!-- 3 SPEC -->
+<section class="slide" data-title="3 · Specification"><div class="wrap">
+  <span class="kicker">Paso 3 · Specification</span>
+  <h2>El contrato: requisitos y escenarios verificables</h2>
+  <p><span class="exit">✔ SPEC READY</span> <code>specs/periodic-table-web/spec.md</code></p>
+  <p class="q">Pulsa un requisito para ver sus escenarios.</p>
+  <div class="grid g2" style="grid-template-columns:minmax(220px,1fr) 1.4fr">
+    <div class="seg" id="reqs" style="flex-direction:column;align-items:stretch"></div>
+    <div class="card detail" id="reqDetail" aria-live="polite"></div>
+  </div>
+  <div class="card bad"><h3>⚠ Inconsistencia conocida</h3>El escenario dice 14 elementos por serie, pero los rangos 57–71 y 89–103 contienen <strong>15</strong> cada uno. La implementación renderiza 15 (para sumar 118). <strong>Hay que corregir el texto de la spec.</strong></div>
+</div></section>
+
+<!-- 4 DESIGN -->
+<section class="slide" data-title="4 · Design"><div class="wrap">
+  <span class="kicker">Paso 4 · Design</span>
+  <h2>Cómo lo construimos: arquitectura y layout</h2>
+  <p><span class="exit">✔ DESIGN READY</span> <code>design.md</code> + <code>DESIGN.md</code></p>
+  <svg viewBox="0 0 960 170" role="img" aria-label="Arquitectura: index.html carga styles.css, data/elements.js y script.js">
+    <defs><marker id="ar4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
+    <rect x="20" y="55" width="190" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--accent)"/>
+    <text x="115" y="92" text-anchor="middle" font-weight="700">index.html</text>
+    <g stroke="var(--muted)" stroke-width="2" fill="none" marker-end="url(#ar4)">
+      <path d="M210 70 L290 28" marker-end="url(#ar4)"/><path d="M210 85 L290 85" marker-end="url(#ar4)"/><path d="M210 100 L290 142" marker-end="url(#ar4)"/>
+    </g>
+    <rect x="295" y="5" width="200" height="46" rx="8" fill="var(--c1)" stroke="var(--line)"/><text x="395" y="33" text-anchor="middle">styles.css</text>
+    <rect x="295" y="62" width="200" height="46" rx="8" fill="var(--c3)" stroke="var(--line)"/><text x="395" y="90" text-anchor="middle">data/elements.js</text>
+    <rect x="295" y="119" width="200" height="46" rx="8" fill="var(--c2)" stroke="var(--line)"/><text x="395" y="147" text-anchor="middle">script.js</text>
+    <path d="M495 85 L560 85 L560 142 L497 142" stroke="var(--muted)" stroke-width="2" fill="none" marker-end="url(#ar4)"/>
+    <text x="570" y="80" font-size="13" class="mut">array global (script clásico, sin módulos)</text>
+    <text x="570" y="100" font-size="13" class="mut">→ funciona por file://</text>
+    <text x="570" y="146" font-size="13" class="mut">createTile() · validateCatalog()</text>
+  </svg>
+  <h3>Layout: cuadrícula de 18 columnas</h3>
+  <div class="seg" id="ptmode">
+    <button aria-pressed="true" data-m="">Todo</button><button aria-pressed="false" data-m="hl-main">Tabla principal</button><button aria-pressed="false" data-m="hl-f">Series internas (f-block)</button>
+  </div>
+  <div class="pt" id="pt" aria-label="Esquema de la cuadrícula de 18 columnas"></div>
+  <p class="hint" id="ptinfo">Celdas fijas: la tabla nunca cambia de geometría. Fila divisora de una celda de altura entre tabla y series f.</p>
+  <div class="grid g2">
+    <div class="card"><h3>Decisiones clave</h3><ul><li>Búsqueda por estados <code>match</code>/<code>dimmed</code>, sin reconstruir el DOM.</li><li>Normalización sin mayúsculas ni acentos.</li><li>Celdas <code>button</code> con nombre accesible y <code>aria-pressed</code>.</li><li>Contenido insertado como texto.</li></ul></div>
+    <div class="card"><h3>Sistema visual</h3><ul><li>10 categorías pastel, modo claro/oscuro.</li><li>Tipografía fluida <code>clamp(40px,5vw,64px)</code>.</li><li>Celda de 47px entre 1024–1290px.</li><li>Modo <code>?showcase=1</code>: default, disabled, empty, error.</li></ul></div>
+  </div>
+  <div class="card warn"><h3>Riesgos</h3>Mantener 118 registros · ancho en móviles · contraste de pasteles · compatibilidad <code>file://</code> · rendimiento del resaltado.</div>
+</div></section>
+
+<!-- 5 TASKS -->
+<section class="slide" data-title="5 · Tasks"><div class="wrap">
+  <span class="kicker">Paso 5 · Tasks</span>
+  <h2>Del diseño a 7 grupos de tareas trazables</h2>
+  <p><span class="exit">✔ IMPLEMENTATION READY</span> <code>tasks.md</code> · todas marcadas <code>[x]</code></p>
+  <table>
+    <thead><tr><th>#</th><th>Grupo</th><th>Contenido</th><th>Requisito</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Estructura</td><td><code>index.html</code>, <code>styles.css</code>, <code>data/elements.js</code>, <code>script.js</code>, enlaces locales</td><td>Local static operation</td></tr>
+      <tr><td>2</td><td>Layout</td><td>Grid 18 columnas, posición por grupo/periodo, placeholders</td><td>Complete layout</td></tr>
+      <tr><td>3</td><td>Catálogo y render</td><td>Validar 118 únicos, series separadas, leyenda</td><td>Complete layout</td></tr>
+      <tr><td>4</td><td>Buscador</td><td>Input search, filtro en tiempo real, restaurar al vaciar</td><td>Element search</td></tr>
+      <tr><td>5</td><td>Panel</td><td>Campos, clic, indicador de selección, cierre</td><td>Selection and details</td></tr>
+      <tr><td>6</td><td>Accesibilidad</td><td>Teclado, dimensiones estables, anuncios</td><td>Keyboard interaction</td></tr>
+      <tr><td>7</td><td>Verificación</td><td>file://, búsqueda, panel, estabilidad, f-block, responsive, teclado, contraste</td><td>Todos</td></tr>
+    </tbody>
+  </table>
+  <div class="card ok" style="margin-top:16px"><h3>Definition of Done</h3>Todas las tareas completadas y verificadas manualmente.</div>
+</div></section>
+
+<!-- 6 IMPLEMENT -->
+<section class="slide" data-title="6 · Implement"><div class="wrap">
+  <span class="kicker">Paso 6 · Implement</span>
+  <h2>Construcción: poco código, bien repartido</h2>
+  <p><span class="exit">✔ IMPLEMENTATION COMPLETE</span></p>
+  <div id="bars" aria-label="Líneas por fichero"></div>
+  <div class="grid g3">
+    <div class="card acc"><h3><code>validateCatalog()</code></h3>Protege el catálogo: exactamente 118 elementos únicos.</div>
+    <div class="card acc"><h3><code>createTile()</code></h3>Primitiva única para la tabla principal y las series f.</div>
+    <div class="card acc"><h3>Sin reconstrucción</h3>Seleccionar y buscar solo cambian estados, no el DOM.</div>
+  </div>
+  <div class="grid g2">
+    <div class="card warn"><h3>Desviación</h3>La propuesta cita <code>app.js</code>; se implementó <code>script.js</code>.</div>
+    <div class="card warn"><h3>Notas</h3><code>script.js</code> y <code>styles.css</code> superan ~250 líneas (aviso de mantenimiento). El directorio no tiene commits en git.</div>
+  </div>
+</div></section>
+
+<!-- 7 VERIFY -->
+<section class="slide" data-title="7 · Verify"><div class="wrap">
+  <span class="kicker">Paso 7 · Verify &amp; Validate</span>
+  <h2>¿Cumple la spec? Evidencia por criterio</h2>
+  <p><span class="exit">✔ RELEASE READY</span> 3 informes en <code>.omo/evidence/</code> · APPROVE / PASS · sin bloqueantes</p>
+  <p class="q">Haz clic en una fila para ver la evidencia.</p>
+  <table id="vtable"><thead><tr><th>Criterio</th><th>Resultado</th></tr></thead><tbody></tbody></table>
+  <div class="card detail" id="vDetail" aria-live="polite" style="margin-top:12px">Selecciona un criterio.</div>
+  <div class="grid g2">
+    <div class="card"><h3>Validación visual</h3>Capturas en 4 anchos (1693, 1280, 768, 375 px) y modo showcase.</div>
+    <div class="card bad"><h3>Gaps y riesgo residual</h3><ul><li>Sin tests automatizados.</li><li>Capturas sin selección, búsqueda ni foco.</li><li>Literales <code>1px/2px</code> en <code>styles.css</code>.</li><li>Capturas en <code>/tmp</code>: pueden perderse.</li></ul></div>
+  </div>
+</div></section>
+
+<!-- 8 RELEASE -->
+<section class="slide" data-title="8 · Release"><div class="wrap">
+  <span class="kicker">Paso 8 · Release &amp; Operate</span>
+  <h2>Entrega sin infraestructura</h2>
+  <p><span class="exit" style="color:var(--warn);background:var(--warn-soft)">⏳ RELEASE STABLE · pendiente de confirmar</span></p>
+  <svg viewBox="0 0 960 150" role="img" aria-label="Flujo de entrega y rollback">
+    <defs><marker id="ar8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
+    <rect x="10" y="30" width="200" height="60" rx="10" fill="var(--c1)" stroke="var(--line)"/><text x="110" y="66" text-anchor="middle">Copiar ficheros</text>
+    <rect x="270" y="30" width="200" height="60" rx="10" fill="var(--c2)" stroke="var(--line)"/><text x="370" y="66" text-anchor="middle">Abrir index.html</text>
+    <rect x="530" y="30" width="200" height="60" rx="10" fill="var(--c3)" stroke="var(--line)"/><text x="630" y="66" text-anchor="middle">Local o hosting estático</text>
+    <rect x="790" y="30" width="160" height="60" rx="10" fill="var(--c4)" stroke="var(--line)"/><text x="870" y="66" text-anchor="middle">Rollback</text>
+    <g stroke="var(--muted)" stroke-width="2"><line x1="212" y1="60" x2="266" y2="60" marker-end="url(#ar8)"/><line x1="472" y1="60" x2="526" y2="60" marker-end="url(#ar8)"/><line x1="732" y1="60" x2="786" y2="60" marker-end="url(#ar8)"/></g>
+    <text x="110" y="115" text-anchor="middle" font-size="13" class="mut">index.html, styles.css,</text><text x="110" y="132" text-anchor="middle" font-size="13" class="mut">script.js, data/</text>
+    <text x="630" y="115" text-anchor="middle" font-size="13" class="mut">sin build, servidor ni env vars</text>
+    <text x="870" y="115" text-anchor="middle" font-size="13" class="mut">restaurar directorio</text>
+  </svg>
+  <div class="grid g3">
+    <div class="card"><h3>Exposición</h3>Fichero local o hosting estático; sin configuración.</div>
+    <div class="card"><h3>Rollback</h3>Retirar ficheros o restaurar el directorio anterior. No hay datos persistentes.</div>
+    <div class="card"><h3>Señales</h3>No hay runtime. Única señal: errores de consola en Chrome, Firefox y Safari.</div>
+  </div>
+  <div class="card warn"><h3>Pendiente</h3><ul><li>Safari no figura verificado en la evidencia.</li><li>Decidir: ¿despliegue real o solo ejemplo didáctico?</li></ul></div>
+</div></section>
+
+<!-- 9 CLOSURE -->
+<section class="slide" data-title="9 · Closure"><div class="wrap">
+  <span class="kicker">Paso 9 · Archive &amp; Learn</span>
+  <h2>Cerrar el change y capturar lo aprendido</h2>
+  <p><span class="exit" style="color:var(--warn);background:var(--warn-soft)">⏳ CHANGE CLOSED · pendiente</span></p>
+  <div class="grid g3">
+    <div class="card acc"><h3>Current truth</h3>
+      <label><input type="checkbox"> Archivar con <code>/opsx:archive</code></label><br>
+      <label><input type="checkbox"> Sincronizar con <code>/opsx:sync</code></label><br>
+      <label><input type="checkbox"> Corregir "14" → 15 por serie</label><br>
+      <label><input type="checkbox"> Alinear <code>app.js</code> → <code>script.js</code></label>
+    </div>
+    <div class="card ok"><h3>Lecciones</h3><ul><li>Estados visuales &gt; reconstruir DOM: geometría estable.</li><li>Scripts clásicos + datos globales bastan para <code>file://</code>.</li><li>Guardar evidencia de QA en el repo, no en <code>/tmp</code>.</li></ul></div>
+    <div class="card warn"><h3>Follow-up</h3>
+      <label><input type="checkbox"> Tests del catálogo y búsqueda</label><br>
+      <label><input type="checkbox"> Tokenizar bordes/foco en CSS</label><br>
+      <label><input type="checkbox"> Dividir <code>script.js</code>/<code>styles.css</code></label><br>
+      <label><input type="checkbox"> Verificar Safari</label>
+    </div>
+  </div>
+  <p class="hint">Las casillas son solo ilustrativas para seguimiento durante la sesión.</p>
+</div></section>
+
+<!-- GOVERNANCE -->
+<section class="slide" data-title="Gobernanza"><div class="wrap">
+  <span class="kicker">Capa transversal</span>
+  <h2>Governance Foundation: reglas que atraviesan todos los pasos</h2>
+  <p class="lead">No cuenta como paso del ciclo, pero condiciona cada decisión.</p>
+  <svg viewBox="0 0 960 120" role="img" aria-label="La gobernanza abarca los 9 pasos">
+    <rect x="5" y="5" width="950" height="110" rx="14" fill="none" stroke="var(--accent)" stroke-dasharray="6 5"/>
+    <text x="480" y="30" text-anchor="middle" font-weight="700" fill="var(--accent)" style="fill:var(--accent)">Governance Foundation</text>
+    <g id="govSteps"></g>
+  </svg>
+  <div class="grid g2">
+    <div class="card"><h3>Restricciones</h3><ul><li>HTML + CSS3 + JS Vanilla, abrible por <code>file://</code>.</li><li>Sin servidor, framework, gestor de paquetes ni recursos remotos.</li><li>Sin módulos ES, <code>fetch</code> ni <code>import/export</code>.</li><li>Navegadores modernos; sin i18n, animaciones pesadas ni persistencia.</li></ul></div>
+    <div class="card"><h3>Accesibilidad y seguridad</h3><ul><li>Controles nativos y foco visible.</li><li>El color nunca es la única señal.</li><li>Datos insertados como texto, no HTML.</li></ul><h3 style="margin-top:12px">Herramientas</h3>OpenSpec (<code>spec-driven</code>) · <code>DESIGN.md</code> · evidencia en <code>.omo/evidence/</code></div>
+  </div>
+</div></section>
+
+<!-- RESUMEN -->
+<section class="slide" data-title="Resumen"><div class="wrap">
+  <span class="kicker">Balance</span>
+  <h2>Qué salió bien y qué queda abierto</h2>
+  <div class="grid g2">
+    <div class="card ok"><h3>Conseguido</h3><ul><li>118 elementos, búsqueda, panel y f-block separado.</li><li>Cero dependencias; funciona por <code>file://</code>.</li><li>Trazabilidad: tarea → requisito → evidencia.</li></ul></div>
+    <div class="card bad"><h3>Deuda</h3><ul><li>Spec con "14" en lugar de 15 y nombre <code>app.js</code>.</li><li>Sin tests automatizados ni verificación en Safari.</li><li>Release y cierre aún sin confirmar.</li></ul></div>
+  </div>
+  <p class="lead">Siguiente acción recomendada: corregir la spec, ejecutar <code>/opsx:sync</code> y archivar el change.</p>
+</div></section>
+
+</main>
+
+<nav class="nav" aria-label="Navegación de la presentación">
+  <button class="btn" id="prev" aria-label="Anterior">←</button>
+  <div class="dots" id="dots"></div>
+  <span class="hint" id="count"></span>
+  <button class="btn" id="next" aria-label="Siguiente">→</button>
+</nav>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide')), cur=0;
+  var dots=document.getElementById('dots'), bar=document.getElementById('bar'), count=document.getElementById('count');
+  slides.forEach(function(s,i){
+    var b=document.createElement('button'); b.title=s.dataset.title; b.setAttribute('aria-label',s.dataset.title);
+    b.addEventListener('click',function(){go(i)}); dots.appendChild(b);
+  });
+  function go(i){
+    cur=Math.max(0,Math.min(slides.length-1,i));
+    slides.forEach(function(s,k){s.classList.toggle('active',k===cur);s.classList.toggle('past',k<cur);s.scrollTop=0;s.setAttribute('aria-hidden',k===cur?'false':'true')});
+    [].forEach.call(dots.children,function(d,k){d.classList.toggle('on',k===cur)});
+    bar.style.width=((cur+1)/slides.length*100)+'%';
+    count.textContent=(cur+1)+' / '+slides.length+' · '+slides[cur].dataset.title;
+    try{history.replaceState(null,'','#'+(cur+1))}catch(e){}
+  }
+  document.getElementById('prev').onclick=function(){go(cur-1)};
+  document.getElementById('next').onclick=function(){go(cur+1)};
+  document.addEventListener('keydown',function(e){
+    if(/INPUT|TEXTAREA/.test(e.target.tagName))return;
+    if(e.key==='ArrowRight'||e.key==='PageDown'||(e.key===' '&&e.target.tagName!=='BUTTON')){e.preventDefault();go(cur+1)}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){go(cur-1)}
+    else if(e.key==='Home')go(0); else if(e.key==='End')go(slides.length-1);
+  });
+  document.getElementById('theme').onclick=function(){
+    var r=document.documentElement, dark=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme: dark)').matches);
+    r.dataset.theme=dark?'light':'dark';
+  };
+
+  function idxOf(t){for(var i=0;i<slides.length;i++)if(slides[i].dataset.title.indexOf(t)===0)return i;return 0}
+
+  /* Ciclo */
+  var steps=[['1','Discovery','DISCOVERY READY'],['2','Ideation','SOLUTION DIRECTION READY'],['3','Spec','SPEC READY'],['4','Design','DESIGN READY'],['5','Tasks','IMPLEMENTATION READY'],['6','Implement','IMPLEMENTATION COMPLETE'],['7','Verify','RELEASE READY'],['8','Release','RELEASE STABLE'],['9','Closure','CHANGE CLOSED']];
+  var done=[1,1,1,1,1,1,1,0,0], svg='';
+  steps.forEach(function(s,i){
+    var x=10+i*105, fill=done[i]?'var(--ok-soft)':'var(--warn-soft)', st=done[i]?'var(--ok)':'var(--warn)';
+    svg+='<g tabindex="0" role="link" style="cursor:pointer" data-go="'+s[0]+' ·" aria-label="Paso '+s[0]+' '+s[1]+'"><rect x="'+x+'" y="60" width="95" height="90" rx="10" fill="'+fill+'" stroke="'+st+'" stroke-width="1.5"/>'+
+    '<text x="'+(x+47)+'" y="92" text-anchor="middle" font-size="22" font-weight="700">'+s[0]+'</text>'+
+    '<text x="'+(x+47)+'" y="116" text-anchor="middle" font-size="13">'+s[1]+'</text>'+
+    '<text x="'+(x+47)+'" y="136" text-anchor="middle" font-size="9" class="mut">'+(done[i]?'✔':'⏳')+'</text></g>';
+    svg+='<text x="'+(x+47)+'" y="48" text-anchor="middle" font-size="9" class="mut">'+s[2].split(' ').slice(0,-1).join(' ')+'</text><text x="'+(x+47)+'" y="58" text-anchor="middle" font-size="9" font-weight="700" style="fill:'+st+'">'+s[2].split(' ').slice(-1)+'</text>';
+  });
+  svg+='<text x="10" y="195" font-size="13" class="mut">Verde: completado · Ámbar: pendiente de confirmar. Exit signal sobre cada caja.</text>';
+  var cy=document.getElementById('cycle'); cy.innerHTML=svg;
+  [].forEach.call(cy.querySelectorAll('[data-go]'),function(g){
+    var f=function(){go(idxOf(g.dataset.go))}; g.addEventListener('click',f);
+    g.addEventListener('keydown',function(e){if(e.key==='Enter'){f()}});
+  });
+  var gs=''; steps.forEach(function(s,i){gs+='<rect x="'+(25+i*102)+'" y="48" width="92" height="52" rx="8" fill="var(--surface)" stroke="var(--line)"/><text x="'+(71+i*102)+'" y="80" text-anchor="middle" font-size="14">'+s[0]+' · '+s[1]+'</text>'});
+  document.getElementById('govSteps').innerHTML=gs;
+
+  /* Alternativas */
+  var alts=[
+   ['A','HTML único con CSS y JS embebidos',0,'Dificulta la evolución y la revisión por capas.'],
+   ['B','index.html + styles.css + data/elements.js + script.js',1,'Separa presentación, datos y comportamiento: se revisa y evoluciona por capas.'],
+   ['C','Filtrar reconstruyendo la tabla',0,'Quitar nodos provoca saltos de geometría.'],
+   ['D','Marcar coincidencias con clases CSS sobre celdas fijas',1,'La tabla no se mueve: solo cambian estados visuales (match / dimmed).'],
+   ['E','Datos vía fetch / módulos ES',0,'Rompe la apertura por file://.']];
+  var ad=document.getElementById('alts'), adt=document.getElementById('altDetail');
+  alts.forEach(function(a){
+    var b=document.createElement('button'); b.className='card '+(a[2]?'ok':'bad'); b.style.cssText='text-align:left;cursor:pointer;font:inherit;color:inherit';
+    b.innerHTML='<strong>'+a[0]+'</strong> <span class="tag '+(a[2]?'ok':'bad')+'">'+(a[2]?'Elegida':'Descartada')+'</span><br>'+a[1];
+    b.onclick=function(){adt.innerHTML='<h3>'+a[0]+' · '+(a[2]?'Elegida':'Descartada')+'</h3>'+a[3]};
+    ad.appendChild(b);
+  });
+
+  /* Requisitos */
+  var reqs=[
+   ['Complete periodic table layout',['Tabla principal completa','Series internas separadas (15 elementos cada una)','Categorías distinguibles']],
+   ['Local static operation',['Apertura por file:// sin peticiones de red']],
+   ['Element search',['Por nombre','Por símbolo o número','Sin resultados (mensaje explícito)']],
+   ['Element selection and details',['Seleccionar un elemento muestra su detalle','Layout estable tras la selección']],
+   ['Usable keyboard and assistive interaction',['Navegar y activar con teclado','Estado sin depender del color']]];
+  var rb=document.getElementById('reqs'), rd=document.getElementById('reqDetail');
+  function showReq(i){
+    [].forEach.call(rb.children,function(b,k){b.setAttribute('aria-pressed',k===i)});
+    rd.innerHTML='<h3>'+reqs[i][0]+'</h3><ul>'+reqs[i][1].map(function(s){return '<li>'+s+'</li>'}).join('')+'</ul>';
+  }
+  reqs.forEach(function(r,i){var b=document.createElement('button');b.textContent=r[0];b.style.textAlign='left';b.onclick=function(){showReq(i)};rb.appendChild(b)});
+  showReq(0);
+
+  /* Mini tabla periódica */
+  var pt=document.getElementById('pt'), h='';
+  function cells(n,cls){var s='';for(var i=0;i<n;i++)s+='<i class="'+cls+'"></i>';return s}
+  h+=cells(1,'nm')+cells(16,'e')+cells(1,'nb');
+  for(var p=0;p<2;p++)h+=cells(2,'mt')+cells(10,'e')+cells(6,'nm');
+  h+=cells(18,'mt');h+=cells(18,'mt');
+  for(p=0;p<2;p++)h+=cells(2,'mt')+cells(1,'gap')+cells(15,'nm');
+  h+=cells(18,'e');
+  h+=cells(2,'e')+cells(15,'f')+cells(1,'e');
+  h+=cells(2,'e')+cells(15,'f')+cells(1,'e');
+  pt.innerHTML=h;
+  var info={'':'Celdas fijas: la tabla nunca cambia de geometría. Fila divisora de una celda entre tabla y series f.','hl-main':'Tabla principal: 7 periodos × 18 columnas. Los huecos punteados en 57 y 89 apuntan a las series f.','hl-f':'Lantánidos (57–71) y actínidos (89–103): 15 elementos cada uno, en filas separadas.'};
+  [].forEach.call(document.querySelectorAll('#ptmode button'),function(b){b.onclick=function(){
+    [].forEach.call(document.querySelectorAll('#ptmode button'),function(x){x.setAttribute('aria-pressed',x===b)});
+    pt.className='pt '+b.dataset.m; document.getElementById('ptinfo').textContent=info[b.dataset.m];
+  }});
+
+  /* Barras */
+  var files=[['styles.css',956],['script.js',284],['data/elements.js',122],['index.html',112],['DESIGN.md',209]], max=956, bh='';
+  files.forEach(function(f){bh+='<div class="bar-row"><span class="lb">'+f[0]+'</span><div class="tr"><div class="fl" style="width:'+(f[1]/max*100)+'%">'+f[1]+'</div></div></div>'});
+  document.getElementById('bars').innerHTML=bh;
+
+  /* Verificación */
+  var v=[
+   ['file:// sin red','Protocolo file:, sin recursos HTTP(S).'],
+   ['118 elementos','118 botones; números 1–118 únicos.'],
+   ['Categorías pastel','10 categorías en leyenda y CSS.'],
+   ['Búsqueda','"oxigeno" → 1 resultado; "79" → 1; "zzzz" → 0 con error explícito.'],
+   ['Geometría estable','Rectángulo de la tabla idéntico antes/después de seleccionar Au.'],
+   ['Separación f-block','Fila divisora de 64 px.'],
+   ['Overflow responsive','375 px: scroll de 1228 px dentro de 343 px.'],
+   ['Teclado / ARIA','118 botones con nombre y aria-pressed; "/" enfoca la búsqueda.']];
+  var tb=document.querySelector('#vtable tbody'), vd=document.getElementById('vDetail');
+  v.forEach(function(r){
+    var tr=document.createElement('tr'); tr.tabIndex=0; tr.style.cursor='pointer';
+    tr.innerHTML='<td>'+r[0]+'</td><td><span class="tag ok">PASS</span></td>';
+    var f=function(){vd.innerHTML='<h3>'+r[0]+'</h3>'+r[1]};
+    tr.onclick=f; tr.onkeydown=function(e){if(e.key==='Enter')f()}; tb.appendChild(tr);
+  });
+
+  var start=parseInt((location.hash||'').slice(1),10); go(isNaN(start)?0:start-1);
+})();
+</script>
+</body>
+</html>

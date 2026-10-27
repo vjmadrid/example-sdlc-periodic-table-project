@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Tabla periódica interactiva con búsqueda y detalles de los elementos químicos.">
+    <title>Tabla periódica | Elemento a elemento</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+      (function () {
+        var theme = null;
+        try { theme = localStorage.getItem("pt-theme"); } catch (e) {}
+        if (theme !== "light" && theme !== "dark") {
+          theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+    <script src="data/elements.js" defer></script>
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Saltar al contenido principal</a>
+    <div class="page-shell">
+      <header class="site-header">
+        <div class="header-kicker">
+          <span class="kicker-mark" aria-hidden="true"></span>
+          <span>Atlas abierto de química</span>
+          <span class="kicker-rule" aria-hidden="true"></span>
+          <span>118 elementos</span>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+            <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+            </svg>
+            <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+            </svg>
+            <span id="theme-toggle-label">Modo oscuro</span>
+          </button>
+        </div>
+        <div class="hero-row">
+          <div class="hero-copy">
+            <p class="eyebrow">Materia · estructura · curiosidad</p>
+            <h1>La materia,<br><em>elemento a elemento.</em></h1>
+            <p class="hero-lede">Una guía visual para recorrer la tabla periódica, encontrar un elemento y entender qué lo hace único.</p>
+          </div>
+          <form class="search-panel" id="search-form" role="search">
+            <label for="element-search">Buscar un elemento</label>
+            <div class="search-control">
+              <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="10.8" cy="10.8" r="6.8"></circle>
+                <path d="m16 16 5 5"></path>
+              </svg>
+              <input id="element-search" name="search" type="search" autocomplete="off" placeholder="Nombre, símbolo o número" aria-describedby="search-help search-status">
+              <kbd aria-label="Atajo de teclado para enfocar la búsqueda">/</kbd>
+              <button class="clear-search" id="clear-search" type="button" aria-label="Limpiar búsqueda" hidden>Limpiar</button>
+            </div>
+            <p class="search-help" id="search-help">Prueba con “oxígeno”, “Fe” o “79”.</p>
+          </form>
+        </div>
+        <div class="header-bottom">
+          <p class="search-status" id="search-status" role="status" aria-live="polite">Mostrando los 118 elementos.</p>
+          <div class="legend" id="category-legend" aria-label="Categorías de elementos"></div>
+        </div>
+      </header>
+
+      <main id="main-content">
+        <div class="workspace-grid">
+          <aside class="detail-panel" id="detail-panel" aria-labelledby="detail-title">
+            <div class="detail-panel-header">
+              <p class="eyebrow">Ficha del elemento</p>
+              <button class="close-detail" id="clear-selection" type="button" aria-label="Limpiar elemento seleccionado" hidden>Limpiar</button>
+            </div>
+            <div class="detail-content" id="detail-content" aria-live="polite">
+              <div class="detail-empty">
+                <div class="empty-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
+                <h2 id="detail-title">Selecciona un elemento</h2>
+                <p>Haz clic en cualquier celda para ver su configuración, categoría y propiedades principales.</p>
+                <span class="detail-hint">También puedes recorrer las celdas con Tab.</span>
+              </div>
+            </div>
+          </aside>
+
+          <section class="table-section" aria-labelledby="table-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Organización IUPAC</p>
+                <h2 id="table-title">Tabla periódica</h2>
+              </div>
+              <p class="section-note">Grupo y período mantienen cada elemento en su lugar.</p>
+            </div>
+
+            <div class="table-scroll" tabindex="0" aria-label="Tabla periódica desplazable horizontalmente">
+              <div class="group-labels" aria-hidden="true"></div>
+              <div class="periodic-grid" id="main-grid" aria-label="Elementos de los períodos 1 a 7"></div>
+              <div class="series-divider" aria-hidden="true"><span>Series internas</span></div>
+              <div class="series-grid" id="lanthanide-grid" aria-label="Lantánidos"></div>
+              <div class="series-grid" id="actinide-grid" aria-label="Actínidos"></div>
+            </div>
+            <p class="table-scroll-hint">Desliza horizontalmente para ver todos los grupos.</p>
+            <p class="table-caption"><span class="caption-line" aria-hidden="true"></span>Las series internas se muestran aparte para conservar la lectura de los grupos principales.</p>
+          </section>
+        </div>
+      </main>
+
+      <footer class="site-footer">
+        <p>Una referencia local, sin servidor y sin dependencias externas.</p>
+        <p class="footer-mark">PT / 01</p>
+      </footer>
+
+      <section class="primitive-showcase" id="primitive-showcase" hidden aria-labelledby="showcase-title">
+        <p class="eyebrow">Modo de revisión</p>
+        <h2 id="showcase-title">Estados de los componentes</h2>
+        <div class="showcase-row">
+          <div class="showcase-state">
+            <span class="showcase-label">Default</span>
+            <button class="element-tile category-nonmetal" type="button" aria-label="Carbono, símbolo C, número atómico 6"><span class="atomic-number">6</span><strong>C</strong><span>Carbono</span></button>
+          </div>
+          <div class="showcase-state">
+            <span class="showcase-label">Disabled</span>
+            <button class="element-tile category-noble" type="button" aria-label="Helio, símbolo He, número atómico 2" disabled><span class="atomic-number">2</span><strong>He</strong><span>Helio</span></button>
+          </div>
+          <div class="showcase-statuses">
+            <p class="showcase-status">Estado vacío · Selecciona un elemento.</p>
+            <p class="showcase-status is-error" role="status">Estado de error · No hay resultados.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

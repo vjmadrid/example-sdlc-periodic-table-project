@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Periodic Table · Modo oscuro en 9 pasos</title>
+<style>
+:root{
+  --bg:#f6f4ef; --surface:#ffffff; --ink:#1f2430; --muted:#5d6577; --line:#dcd8cc;
+  --accent:#3b5bdb; --accent-soft:#e3e8fc; --ok:#2b8a3e; --ok-soft:#dcf2e1; --bad:#c92a2a; --bad-soft:#fbe3e3; --warn:#b36b00; --warn-soft:#fdf0d5;
+  --c1:#cfe8ff; --c2:#d8f5d0; --c3:#fff1c2; --c4:#ffd9d9; --c5:#e6d9ff;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161c; --surface:#1d2029; --ink:#eceef4; --muted:#9aa2b5; --line:#343949;
+    --accent:#8aa2ff; --accent-soft:#272e52; --ok:#6fcf86; --ok-soft:#1d3a26; --bad:#ff8787; --bad-soft:#442226; --warn:#f0b255; --warn-soft:#41331a;
+    --c1:#27405c; --c2:#2a4a2a; --c3:#52461f; --c4:#573030; --c5:#40335e;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14161c; --surface:#1d2029; --ink:#eceef4; --muted:#9aa2b5; --line:#343949;
+  --accent:#8aa2ff; --accent-soft:#272e52; --ok:#6fcf86; --ok-soft:#1d3a26; --bad:#ff8787; --bad-soft:#442226; --warn:#f0b255; --warn-soft:#41331a;
+  --c1:#27405c; --c2:#2a4a2a; --c3:#52461f; --c4:#573030; --c5:#40335e;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:17px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+.bar{position:fixed;top:0;left:0;height:4px;background:var(--accent);transition:width .3s;z-index:5}
+header.top{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:14px 24px;font-size:13px;color:var(--muted);z-index:4}
+header.top button{font:inherit}
+.deck{height:100%;position:relative}
+.slide{position:absolute;inset:0;padding:64px 8vw 84px;overflow-y:auto;opacity:0;visibility:hidden;transform:translateX(30px);transition:opacity .35s,transform .35s,visibility .35s}
+.slide.active{opacity:1;visibility:visible;transform:none}
+.slide.past{transform:translateX(-30px)}
+.wrap{max-width:1040px;margin:0 auto}
+.kicker{display:inline-block;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:3px 10px;border-radius:99px}
+h1{font-size:clamp(34px,5vw,58px);line-height:1.1;margin:.3em 0 .2em}
+h2{font-size:clamp(26px,3.4vw,38px);line-height:1.2;margin:.35em 0 .3em}
+h3{font-size:18px;margin:0 0 6px}
+p{margin:.4em 0}
+.lead{font-size:20px;color:var(--muted)}
+.exit{display:inline-flex;gap:8px;align-items:center;font:600 13px ui-monospace,Menlo,monospace;color:var(--ok);background:var(--ok-soft);padding:4px 10px;border-radius:6px}
+.q{font-style:italic;color:var(--muted)}
+.grid{display:grid;gap:16px;margin:18px 0}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.card.ok{border-left:4px solid var(--ok)} .card.bad{border-left:4px solid var(--bad)} .card.warn{border-left:4px solid var(--warn)} .card.acc{border-left:4px solid var(--accent)}
+ul{padding-left:20px;margin:.4em 0} li{margin:.25em 0}
+code{font:14px ui-monospace,Menlo,monospace;background:var(--accent-soft);padding:1px 6px;border-radius:5px}
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:15px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--bg)}
+tr:last-child td{border-bottom:0}
+.tag{font:600 12px system-ui;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.tag.ok{background:var(--ok-soft);color:var(--ok)} .tag.bad{background:var(--bad-soft);color:var(--bad)} .tag.warn{background:var(--warn-soft);color:var(--warn)}
+button.btn,.seg button{font:inherit;cursor:pointer;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px}
+button.btn:hover,.seg button:hover{border-color:var(--accent)}
+.seg{display:inline-flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+svg{max-width:100%;height:auto;display:block}
+svg text{fill:var(--ink);font-family:system-ui,sans-serif}
+svg .mut{fill:var(--muted)}
+.nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:14px;padding:14px;background:linear-gradient(transparent,var(--bg) 40%);z-index:4}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:60vw}
+.dots button{width:12px;height:12px;border-radius:50%;border:0;background:var(--line);cursor:pointer;padding:0}
+.dots button.on{background:var(--accent);transform:scale(1.3)}
+.dots button:hover{background:var(--muted)}
+.hint{font-size:13px;color:var(--muted)}
+/* mini table */
+.pt{display:grid;grid-template-columns:repeat(18,1fr);gap:3px;max-width:760px}
+.pt i{aspect-ratio:1;border-radius:3px;background:var(--c1);transition:opacity .25s,outline .25s}
+.pt i.e{background:transparent}
+.pt i.f{background:var(--c5)} .pt i.nm{background:var(--c4)} .pt i.mt{background:var(--c3)} .pt i.nb{background:var(--c2)}
+.pt i.gap{background:transparent;border:1px dashed var(--line)}
+.pt.hl-main i.f{opacity:.15} .pt.hl-f i:not(.f):not(.gap){opacity:.15}
+.pt.hl-f i.f{outline:2px solid var(--accent)}
+/* flow */
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
+.flow .n{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:15px}
+.flow .a{color:var(--muted)}
+.bar-row{display:flex;align-items:center;gap:10px;margin:8px 0;font:14px ui-monospace,Menlo,monospace}
+.bar-row .lb{width:150px}
+.bar-row .tr{flex:1;background:var(--line);border-radius:6px;overflow:hidden;height:22px}
+.bar-row .fl{height:100%;background:var(--accent);width:0;transition:width .8s;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;color:#fff;font-size:12px}
+.slide:not(.active) .bar-row .fl{width:0!important}
+.detail{min-height:70px}
+@media (max-width:640px){.slide{padding:56px 20px 90px}.bar-row .lb{width:100px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="bar" id="bar"></div>
+<header class="top">
+  <span>Periodic Table · Modo oscuro · SDD en 9 pasos</span>
+  <span><button class="btn" id="theme" aria-label="Cambiar tema">◐ Tema</button></span>
+</header>
+
+<main class="deck" id="deck">
+
+<!-- 0 PORTADA -->
+<section class="slide" data-title="Portada"><div class="wrap">
+  <span class="kicker">Spec Driven Development</span>
+  <h1>Modo oscuro para la Tabla Periódica<br>en 9 pasos</h1>
+  <p class="lead">Una evolución incremental: cómo el flujo OpenSpec añade un botón de tema a un producto ya construido y archivado.</p>
+  <div class="grid g3">
+    <div class="card"><h3>Punto de partida</h3>La app de <code>01-build</code>: HTML + CSS3 + JS Vanilla, abrible por <code>file://</code>.</div>
+    <div class="card"><h3>Objetivo didáctico</h3>Ver OpenSpec aplicado a un change sobre un proyecto existente, con delta spec.</div>
+    <div class="card"><h3>Change</h3><code>add-dark-mode-toggle</code></div>
+  </div>
+  <p class="hint">Navega con ← → · Espacio · Inicio/Fin · clic en los puntos inferiores</p>
+</div></section>
+
+<!-- 0b CICLO -->
+<section class="slide" data-title="El ciclo"><div class="wrap">
+  <span class="kicker">Visión general</span>
+  <h2>El ciclo de vida: cada paso termina con una señal de salida</h2>
+  <p class="lead">Un paso no avanza hasta emitir su "exit". Haz clic en un paso para saltar a él.</p>
+  <svg viewBox="0 0 960 250" role="img" aria-label="Diagrama de los 9 pasos y sus señales de salida" id="cycle"></svg>
+  <div class="grid g3">
+    <div class="card acc"><h3>Pasos 1–4 · Pensar</h3>Qué problema, qué opciones, qué contrato, qué diseño.</div>
+    <div class="card acc"><h3>Pasos 5–6 · Construir</h3>Dividir en tareas e implementarlas.</div>
+    <div class="card acc"><h3>Pasos 7–9 · Cerrar</h3>Verificar, liberar y aprender.</div>
+  </div>
+</div></section>
+
+<!-- 1 DISCOVERY -->
+<section class="slide" data-title="1 · Discovery"><div class="wrap">
+  <span class="kicker">Paso 1 · Discovery</span>
+  <h2>¿Qué problema resolvemos y por qué importa?</h2>
+  <p><span class="exit">✔ DISCOVERY READY</span></p>
+  <svg viewBox="0 0 960 190" role="img" aria-label="Problema, necesidades y resultado esperado">
+    <defs><marker id="ar1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
+    <rect x="10" y="30" width="270" height="130" rx="12" fill="var(--bad-soft)" stroke="var(--bad)"/>
+    <text x="30" y="62" font-weight="700" font-size="17">Problema</text>
+    <text x="30" y="90" font-size="14">Solo existe el tema claro,</text>
+    <text x="30" y="112" font-size="14">aunque DESIGN.md ya define</text>
+    <text x="30" y="132" font-size="14">la paleta oscura.</text>
+    <line x1="285" y1="95" x2="340" y2="95" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar1)"/>
+    <rect x="345" y="30" width="270" height="130" rx="12" fill="var(--accent-soft)" stroke="var(--accent)"/>
+    <text x="365" y="62" font-weight="700" font-size="17">Necesidades</text>
+    <text x="365" y="88" font-size="14">• Alternar desde la zona superior</text>
+    <text x="365" y="108" font-size="14">• Tema inicial según el sistema</text>
+    <text x="365" y="128" font-size="14">• Recordar la elección manual</text>
+    <text x="365" y="148" font-size="14">• Accesibilidad y pasteles legibles</text>
+    <line x1="620" y1="95" x2="675" y2="95" stroke="var(--muted)" stroke-width="2" marker-end="url(#ar1)"/>
+    <rect x="680" y="30" width="270" height="130" rx="12" fill="var(--ok-soft)" stroke="var(--ok)"/>
+    <text x="700" y="62" font-weight="700" font-size="17">Resultado</text>
+    <text x="700" y="92" font-size="14">Un botón de tema que funciona</text>
+    <text x="700" y="112" font-size="14">offline por file:// sin romper</text>
+    <text x="700" y="132" font-size="14">nada de lo existente.</text>
+  </svg>
+  <div class="grid g2">
+    <div class="card"><h3>Por qué este change</h3><ul><li>Evolución incremental sobre un producto archivado.</li><li>Alcance pequeño y verificable.</li><li>El foco sigue siendo el flujo OpenSpec.</li></ul></div>
+    <div class="card warn"><h3>Pregunta abierta</h3>¿Cómo persistir la elección? <br><span class="tag ok">Resuelta en diseño</span> <code>localStorage</code> con <code>try/catch</code>; sin tercer modo «automático».</div>
+  </div>
+</div></section>
+
+<!-- 2 IDEATION -->
+<section class="slide" data-title="2 · Ideation"><div class="wrap">
+  <span class="kicker">Paso 2 · Ideation</span>
+  <h2>¿Qué podríamos hacer? Alternativas y decisiones</h2>
+  <p><span class="exit">✔ SOLUTION DIRECTION READY</span></p>
+  <p class="q">Haz clic en una alternativa para ver el motivo.</p>
+  <div class="grid g3" id="alts"></div>
+  <div class="card detail" id="altDetail" aria-live="polite">Selecciona una alternativa.</div>
+  <div class="grid g2">
+    <div class="card"><h3>Supuestos</h3><ul><li>Todos los colores ya son tokens CSS: el tema oscuro es redefinir tokens.</li><li>Los valores de <code>DESIGN.md</code> bastan; solo se ajustan si fallan contraste.</li></ul></div>
+    <div class="card"><h3>Referencias</h3>Tokens Light/Dark de <code>DESIGN.md</code> y estructura de la cabecera (<code>.site-header</code>, <code>.hero-row</code>).</div>
+  </div>
+</div></section>
+
+<!-- 2b PROPOSAL -->
+<section class="slide" data-title="2b · Proposal"><div class="wrap">
+  <span class="kicker">Entregable · proposal.md</span>
+  <h2>La propuesta formaliza la dirección elegida</h2>
+  <p><span class="exit">✔ PROPOSAL READY</span> <code>openspec/changes/add-dark-mode-toggle/proposal.md</code></p>
+  <p class="q">Generada con <code>/opsx:propose</code> (Claude) o <code>$openspec-propose</code> (Codex).</p>
+  <div class="grid g2">
+    <div class="card acc"><h3>Why</h3>La página solo tiene tema claro y no respeta la preferencia del sistema, aunque <code>DESIGN.md</code> ya define la paleta oscura.</div>
+    <div class="card acc"><h3>Impacto</h3><code>index.html</code>, <code>styles.css</code> y <code>script.js</code>. Sin dependencias ni red.</div>
+  </div>
+  <h3>What changes</h3>
+  <ul>
+    <li>Botón en la zona superior que alterna claro/oscuro.</li>
+    <li>Paleta oscura en toda la interfaz, con pasteles legibles.</li>
+    <li>Tema inicial según el sistema; elección manual recordada.</li>
+    <li>Botón accesible: nombre, estado no solo por color, teclado, foco.</li>
+  </ul>
+  <h3>Capabilities</h3>
+  <div class="flow"><span class="n">Nuevas: ninguna</span><span class="a">·</span><span class="n">Modificada: periodic-table-web</span></div>
+  <div class="card warn"><h3>Supuestos</h3>Almacenamiento local al navegador; no se añade un tercer modo «automático» explícito.</div>
+</div></section>
+
+<!-- 3 SPEC -->
+<section class="slide" data-title="3 · Specification"><div class="wrap">
+  <span class="kicker">Paso 3 · Specification</span>
+  <h2>El contrato: un delta con tres requisitos nuevos</h2>
+  <p><span class="exit">✔ SPEC READY</span> <code>specs/periodic-table-web/spec.md</code> (delta)</p>
+  <p class="q">Pulsa un requisito para ver sus escenarios.</p>
+  <div class="grid g2" style="grid-template-columns:minmax(220px,1fr) 1.4fr">
+    <div class="seg" id="reqs" style="flex-direction:column;align-items:stretch"></div>
+    <div class="card detail" id="reqDetail" aria-live="polite"></div>
+  </div>
+  <div class="card acc"><h3>Delta frente a <code>01-build</code></h3>Solo <code>ADDED Requirements</code>: la spec base (5 requisitos) no se modifica. Al archivar, la spec principal pasa a <strong>8</strong>.</div>
+  <div class="card warn" style="margin-top:12px"><h3>Inconsistencia heredada</h3>Sigue pendiente la de <code>01-build</code> (series de «14» vs 15 elementos); no afecta a este change.</div>
+</div></section>
+
+<!-- 4 DESIGN -->
+<section class="slide" data-title="4 · Design"><div class="wrap">
+  <span class="kicker">Paso 4 · Design</span>
+  <h2>Cómo lo construimos: tokens y un script en el head</h2>
+  <p><span class="exit">✔ DESIGN READY</span> <code>design.md</code> + <code>DESIGN.md</code> (Theme Toggle)</p>
+  <svg viewBox="0 0 960 170" role="img" aria-label="Arquitectura: index.html carga styles.css, data/elements.js y script.js; el tema se fija desde el head">
+    <defs><marker id="ar4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
+    <rect x="20" y="55" width="190" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--accent)"/>
+    <text x="115" y="82" text-anchor="middle" font-weight="700">index.html</text><text x="115" y="102" text-anchor="middle" font-size="12" class="mut">+ botón y script en head</text>
+    <g stroke="var(--muted)" stroke-width="2" fill="none">
+      <path d="M210 70 L290 28" marker-end="url(#ar4)"/><path d="M210 85 L290 85" marker-end="url(#ar4)"/><path d="M210 100 L290 142" marker-end="url(#ar4)"/>
+    </g>
+    <rect x="295" y="5" width="200" height="46" rx="8" fill="var(--c1)" stroke="var(--line)"/><text x="395" y="33" text-anchor="middle">styles.css · tokens oscuros</text>
+    <rect x="295" y="62" width="200" height="46" rx="8" fill="var(--line)" stroke="var(--line)" opacity=".5"/><text x="395" y="90" text-anchor="middle">data/elements.js · sin cambios</text>
+    <rect x="295" y="119" width="200" height="46" rx="8" fill="var(--c2)" stroke="var(--line)"/><text x="395" y="147" text-anchor="middle">script.js · toggle y tema</text>
+    <path d="M495 142 L560 142" stroke="var(--muted)" stroke-width="2" fill="none" marker-end="url(#ar4)"/>
+    <text x="570" y="38" font-size="13" class="mut">&lt;html data-theme="dark|light"&gt;</text>
+    <text x="570" y="58" font-size="13" class="mut">fijado antes del primer pintado</text>
+    <text x="570" y="100" font-size="13" class="mut">localStorage "pt-theme" (try/catch)</text>
+    <text x="570" y="146" font-size="13" class="mut">applyTheme() · toggleTheme()</text>
+  </svg>
+  <div class="grid g2">
+    <div class="card"><h3>Decisiones clave</h3><ul><li><code>data-theme</code> en <code>&lt;html&gt;</code>; tokens bajo <code>:root[data-theme="dark"]</code>.</li><li>Script síncrono en <code>&lt;head&gt;</code>: sin parpadeo.</li><li>Persistencia en <code>localStorage</code> con <code>try/catch</code>.</li><li>Sigue <code>prefers-color-scheme</code> solo sin elección manual.</li></ul></div>
+    <div class="card"><h3>Botón y estilo</h3><ul><li><code>&lt;button&gt;</code> con <code>aria-pressed</code>, etiqueta textual e iconos SVG decorativos.</li><li><code>color-scheme</code> por tema para controles nativos.</li><li>Transición de 240ms, anulada con reduced motion.</li><li>Solo cambian colores, nunca tamaños.</li></ul></div>
+  </div>
+  <div class="card warn"><h3>Riesgos</h3>Contraste de pasteles oscuros · script en head duplica lógica · <code>localStorage</code> bloqueado · el cambio no debe alterar el layout.</div>
+</div></section>
+
+<!-- 5 TASKS -->
+<section class="slide" data-title="5 · Tasks"><div class="wrap">
+  <span class="kicker">Paso 5 · Tasks</span>
+  <h2>Del diseño a 4 grupos de tareas trazables</h2>
+  <p><span class="exit">✔ IMPLEMENTATION READY</span> <code>tasks.md</code> · 10 de 11 marcadas <code>[x]</code></p>
+  <table>
+    <thead><tr><th>#</th><th>Grupo</th><th>Contenido</th><th>Requisito</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Tema oscuro en estilos</td><td><code>:root[data-theme="dark"]</code>, <code>color-scheme</code>, sin colores literales, transición + reduced motion</td><td>Theme toggle</td></tr>
+      <tr><td>2</td><td>Botón de tema</td><td>Botón en cabecera (SVG, etiqueta, <code>aria-pressed</code>), foco, objetivo táctil, móvil</td><td>Accessible control</td></tr>
+      <tr><td>3</td><td>Lógica de tema</td><td>Script en <code>&lt;head&gt;</code>, alternancia, guardado con <code>try/catch</code>, seguir el sistema</td><td>Initial choice + persistence</td></tr>
+      <tr><td>4</td><td>Verificación</td><td>Contrastes AA, estabilidad, teclado/AT, persistencia, <code>file://</code>, <code>DESIGN.md</code></td><td>Todos</td></tr>
+    </tbody>
+  </table>
+  <div class="card bad" style="margin-top:16px"><h3>Definition of Done: no cumplida del todo</h3>La tarea <strong>4.3</strong> (teclado y tecnología de asistencia, persistencia entre visitas, primer acceso con sistema claro/oscuro, apertura desde <code>file://</code>) sigue sin marcar.</div>
+</div></section>
+
+<!-- 6 IMPLEMENT -->
+<section class="slide" data-title="6 · Implement"><div class="wrap">
+  <span class="kicker">Paso 6 · Implement</span>
+  <h2>Construcción: un delta pequeño y localizado</h2>
+  <p><span class="exit">✔ IMPLEMENTATION COMPLETE</span> con <code>/opsx:apply add-dark-mode-toggle</code></p>
+  <div id="bars" aria-label="Líneas por fichero (delta respecto al build)"></div>
+  <div class="grid g3">
+    <div class="card acc"><h3><code>applyTheme()</code></h3>Fija <code>data-theme</code>, <code>aria-pressed</code> y la etiqueta del botón.</div>
+    <div class="card acc"><h3><code>toggleTheme()</code></h3>Alterna, anima 300ms y guarda <code>pt-theme</code> en <code>try/catch</code>.</div>
+    <div class="card acc"><h3>Sin tocar la tabla</h3>Solo cambian valores de color: búsqueda y selección no se alteran.</div>
+  </div>
+  <div class="grid g2">
+    <div class="card warn"><h3>Duplicación intencionada</h3>La lectura del tema inicial está en el <code>&lt;head&gt;</code> y en <code>script.js</code> para evitar el parpadeo.</div>
+    <div class="card warn"><h3>Notas</h3><code>styles.css</code> (1038) y <code>script.js</code> (333) siguen creciendo sobre el aviso de mantenimiento de <code>01-build</code>.</div>
+  </div>
+</div></section>
+
+<!-- 7 VERIFY -->
+<section class="slide" data-title="7 · Verify"><div class="wrap">
+  <span class="kicker">Paso 7 · Verify &amp; Validate</span>
+  <h2>¿Cumple la spec? Estado por criterio</h2>
+  <p><span class="exit" style="color:var(--warn);background:var(--warn-soft)">⏳ RELEASE READY · condicionado a la tarea 4.3</span></p>
+  <div class="card warn"><h3>Sin evidencia de QA propia</h3>Los informes de <code>.omo/evidence/</code> son los del build original. La tabla refleja el código y el estado de <code>tasks.md</code>, no resultados medidos.</div>
+  <p class="q">Haz clic en una fila para ver la fuente.</p>
+  <table id="vtable"><thead><tr><th>Criterio</th><th>Estado</th></tr></thead><tbody></tbody></table>
+  <div class="card detail" id="vDetail" aria-live="polite" style="margin-top:12px">Selecciona un criterio.</div>
+  <div class="card bad"><h3>Gaps y riesgo residual</h3><ul><li>Tarea 4.3 abierta.</li><li>Sin capturas ni pruebas manuales registradas del tema oscuro.</li><li>Sin tests automatizados, Safari ni lector de pantalla real.</li><li>Heredado: spec «14 vs 15» y literales <code>1px/2px</code>.</li></ul></div>
+</div></section>
+
+<!-- 8 RELEASE -->
+<section class="slide" data-title="8 · Release"><div class="wrap">
+  <span class="kicker">Paso 8 · Release &amp; Operate</span>
+  <h2>Entrega sin infraestructura (igual que el build)</h2>
+  <p><span class="exit" style="color:var(--warn);background:var(--warn-soft)">⏳ RELEASE STABLE · pendiente de confirmar</span></p>
+  <svg viewBox="0 0 960 150" role="img" aria-label="Flujo de entrega y rollback">
+    <defs><marker id="ar8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>
+    <rect x="10" y="30" width="200" height="60" rx="10" fill="var(--c1)" stroke="var(--line)"/><text x="110" y="66" text-anchor="middle">Copiar ficheros</text>
+    <rect x="270" y="30" width="200" height="60" rx="10" fill="var(--c2)" stroke="var(--line)"/><text x="370" y="66" text-anchor="middle">Abrir index.html</text>
+    <rect x="530" y="30" width="200" height="60" rx="10" fill="var(--c3)" stroke="var(--line)"/><text x="630" y="66" text-anchor="middle">Local o hosting estático</text>
+    <rect x="790" y="30" width="160" height="60" rx="10" fill="var(--c4)" stroke="var(--line)"/><text x="870" y="66" text-anchor="middle">Rollback</text>
+    <g stroke="var(--muted)" stroke-width="2"><line x1="212" y1="60" x2="266" y2="60" marker-end="url(#ar8)"/><line x1="472" y1="60" x2="526" y2="60" marker-end="url(#ar8)"/><line x1="732" y1="60" x2="786" y2="60" marker-end="url(#ar8)"/></g>
+    <text x="110" y="115" text-anchor="middle" font-size="13" class="mut">index.html, styles.css,</text><text x="110" y="132" text-anchor="middle" font-size="13" class="mut">script.js, data/</text>
+    <text x="630" y="115" text-anchor="middle" font-size="13" class="mut">sin build, servidor ni env vars</text>
+    <text x="870" y="115" text-anchor="middle" font-size="13" class="mut">restaurar directorio</text>
+  </svg>
+  <div class="grid g3">
+    <div class="card"><h3>Exposición</h3>Fichero local o hosting estático. La elección de tema se guarda por navegador, no se sincroniza.</div>
+    <div class="card"><h3>Rollback</h3>Restaurar los cuatro ficheros previos. Una clave <code>pt-theme</code> residual es inocua.</div>
+    <div class="card"><h3>Señales</h3>Sin runtime. Comprobar consola, primer acceso con sistema claro/oscuro y <code>localStorage</code> bloqueado en Chrome, Firefox y Safari.</div>
+  </div>
+  <div class="card warn"><h3>Pendiente</h3><ul><li>Cerrar la tarea 4.3 antes de dar el release por estable.</li><li>Decidir: ¿despliegue real o solo ejemplo didáctico?</li></ul></div>
+</div></section>
+
+<!-- 9 CLOSURE -->
+<section class="slide" data-title="9 · Closure"><div class="wrap">
+  <span class="kicker">Paso 9 · Archive &amp; Learn</span>
+  <h2>Cerrar el change y capturar lo aprendido</h2>
+  <p><span class="exit" style="color:var(--warn);background:var(--warn-soft)">✔ CHANGE CLOSED · archivado con una tarea abierta</span></p>
+  <div class="grid g3">
+    <div class="card acc"><h3>Current truth</h3>
+      <ul><li>Archivado con <code>/opsx:archive</code> en <code>archive/2026-10-27-add-dark-mode-toggle</code>.</li><li>Spec principal sincronizada: 5 → <strong>8</strong> requisitos.</li><li>Tarea 4.3 sin completar.</li></ul>
+    </div>
+    <div class="card ok"><h3>Lecciones</h3><ul><li>Tokens CSS desde el build: el tema es redefinir valores.</li><li>Script síncrono en <code>&lt;head&gt;</code> evita el parpadeo.</li><li>Delta solo con <code>ADDED</code> mantiene el change pequeño.</li><li>Archivar con tareas abiertas oculta deuda.</li></ul></div>
+    <div class="card warn"><h3>Follow-up</h3>
+      <label><input type="checkbox"> Completar 4.3 y guardar evidencia</label><br>
+      <label><input type="checkbox"> Tests de tema y persistencia</label><br>
+      <label><input type="checkbox"> Valorar tercer modo «sistema»</label><br>
+      <label><input type="checkbox"> Dividir <code>script.js</code>/<code>styles.css</code></label><br>
+      <label><input type="checkbox"> Verificar Safari</label>
+    </div>
+  </div>
+  <p class="hint">Las casillas son solo ilustrativas para seguimiento durante la sesión.</p>
+</div></section>
+
+<!-- GOVERNANCE -->
+<section class="slide" data-title="Gobernanza"><div class="wrap">
+  <span class="kicker">Capa transversal</span>
+  <h2>Governance Foundation: reglas que atraviesan todos los pasos</h2>
+  <p class="lead">No cuenta como paso del ciclo, pero condiciona cada decisión.</p>
+  <svg viewBox="0 0 960 120" role="img" aria-label="La gobernanza abarca los 9 pasos">
+    <rect x="5" y="5" width="950" height="110" rx="14" fill="none" stroke="var(--accent)" stroke-dasharray="6 5"/>
+    <text x="480" y="30" text-anchor="middle" font-weight="700" fill="var(--accent)" style="fill:var(--accent)">Governance Foundation</text>
+    <g id="govSteps"></g>
+  </svg>
+  <div class="grid g2">
+    <div class="card"><h3>Restricciones</h3><ul><li>HTML + CSS3 + JS Vanilla, abrible por <code>file://</code>.</li><li>Sin dependencias, red, módulos ES ni <code>fetch</code>.</li><li>Tema solo con tokens CSS: sin colores literales fuera de <code>:root</code>.</li><li>Cambiar de tema no altera tamaños ni posiciones.</li><li>Persistencia admitida solo para el tema (<code>localStorage</code>).</li></ul></div>
+    <div class="card"><h3>Accesibilidad y seguridad</h3><ul><li>Controles nativos y foco visible.</li><li>El color nunca es la única señal.</li><li>Contraste WCAG 2.2 AA en ambos temas.</li></ul><h3 style="margin-top:12px">Herramientas</h3>OpenSpec (<code>spec-driven</code>) con <code>add-dark-mode-toggle</code> · <code>DESIGN.md</code> (tokens Light/Dark)</div>
+  </div>
+</div></section>
+
+<!-- RESUMEN -->
+<section class="slide" data-title="Resumen"><div class="wrap">
+  <span class="kicker">Balance</span>
+  <h2>Qué salió bien y qué queda abierto</h2>
+  <div class="grid g2">
+    <div class="card ok"><h3>Conseguido</h3><ul><li>Botón de tema, paleta oscura y tema inicial según el sistema.</li><li>Elección recordada; cero dependencias y funciona por <code>file://</code>.</li><li>Delta spec limpio: 3 requisitos añadidos a la spec base.</li></ul></div>
+    <div class="card bad"><h3>Deuda</h3><ul><li>Tarea 4.3 sin completar.</li><li>Sin evidencia de QA propia ni tests automatizados.</li><li>Sin verificación en Safari; release sin confirmar.</li></ul></div>
+  </div>
+  <p class="lead">Siguiente acción recomendada: completar la tarea 4.3, guardar la evidencia en el repo y confirmar el release.</p>
+</div></section>
+
+</main>
+
+<nav class="nav" aria-label="Navegación de la presentación">
+  <button class="btn" id="prev" aria-label="Anterior">←</button>
+  <div class="dots" id="dots"></div>
+  <span class="hint" id="count"></span>
+  <button class="btn" id="next" aria-label="Siguiente">→</button>
+</nav>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide')), cur=0;
+  var dots=document.getElementById('dots'), bar=document.getElementById('bar'), count=document.getElementById('count');
+  slides.forEach(function(s,i){
+    var b=document.createElement('button'); b.title=s.dataset.title; b.setAttribute('aria-label',s.dataset.title);
+    b.addEventListener('click',function(){go(i)}); dots.appendChild(b);
+  });
+  function go(i){
+    cur=Math.max(0,Math.min(slides.length-1,i));
+    slides.forEach(function(s,k){s.classList.toggle('active',k===cur);s.classList.toggle('past',k<cur);s.scrollTop=0;s.setAttribute('aria-hidden',k===cur?'false':'true')});
+    [].forEach.call(dots.children,function(d,k){d.classList.toggle('on',k===cur)});
+    bar.style.width=((cur+1)/slides.length*100)+'%';
+    count.textContent=(cur+1)+' / '+slides.length+' · '+slides[cur].dataset.title;
+    try{history.replaceState(null,'','#'+(cur+1))}catch(e){}
+  }
+  document.getElementById('prev').onclick=function(){go(cur-1)};
+  document.getElementById('next').onclick=function(){go(cur+1)};
+  document.addEventListener('keydown',function(e){
+    if(/INPUT|TEXTAREA/.test(e.target.tagName))return;
+    if(e.key==='ArrowRight'||e.key==='PageDown'||(e.key===' '&&e.target.tagName!=='BUTTON')){e.preventDefault();go(cur+1)}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){go(cur-1)}
+    else if(e.key==='Home')go(0); else if(e.key==='End')go(slides.length-1);
+  });
+  document.getElementById('theme').onclick=function(){
+    var r=document.documentElement, dark=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme: dark)').matches);
+    r.dataset.theme=dark?'light':'dark';
+  };
+
+  function idxOf(t){for(var i=0;i<slides.length;i++)if(slides[i].dataset.title.indexOf(t)===0)return i;return 0}
+
+  /* Ciclo */
+  var steps=[['1','Discovery','DISCOVERY READY'],['2','Ideation','SOLUTION DIRECTION READY'],['3','Spec','SPEC READY'],['4','Design','DESIGN READY'],['5','Tasks','IMPLEMENTATION READY'],['6','Implement','IMPLEMENTATION COMPLETE'],['7','Verify','RELEASE READY'],['8','Release','RELEASE STABLE'],['9','Closure','CHANGE CLOSED']];
+  var done=[1,1,1,1,1,1,1,0,1], svg='';
+  steps.forEach(function(s,i){
+    var x=10+i*105, fill=done[i]?'var(--ok-soft)':'var(--warn-soft)', st=done[i]?'var(--ok)':'var(--warn)';
+    svg+='<g tabindex="0" role="link" style="cursor:pointer" data-go="'+s[0]+' ·" aria-label="Paso '+s[0]+' '+s[1]+'"><rect x="'+x+'" y="60" width="95" height="90" rx="10" fill="'+fill+'" stroke="'+st+'" stroke-width="1.5"/>'+
+    '<text x="'+(x+47)+'" y="92" text-anchor="middle" font-size="22" font-weight="700">'+s[0]+'</text>'+
+    '<text x="'+(x+47)+'" y="116" text-anchor="middle" font-size="13">'+s[1]+'</text>'+
+    '<text x="'+(x+47)+'" y="136" text-anchor="middle" font-size="9" class="mut">'+(done[i]?'✔':'⏳')+'</text></g>';
+    svg+='<text x="'+(x+47)+'" y="48" text-anchor="middle" font-size="9" class="mut">'+s[2].split(' ').slice(0,-1).join(' ')+'</text><text x="'+(x+47)+'" y="58" text-anchor="middle" font-size="9" font-weight="700" style="fill:'+st+'">'+s[2].split(' ').slice(-1)+'</text>';
+  });
+  svg+='<text x="10" y="195" font-size="13" class="mut">Verde: completado · Ámbar: pendiente. Paso 7 condicionado a la tarea 4.3; paso 9 archivado con 4.3 abierta.</text>';
+  var cy=document.getElementById('cycle'); cy.innerHTML=svg;
+  [].forEach.call(cy.querySelectorAll('[data-go]'),function(g){
+    var f=function(){go(idxOf(g.dataset.go))}; g.addEventListener('click',f);
+    g.addEventListener('keydown',function(e){if(e.key==='Enter'){f()}});
+  });
+  var gs=''; steps.forEach(function(s,i){gs+='<rect x="'+(25+i*102)+'" y="48" width="92" height="52" rx="8" fill="var(--surface)" stroke="var(--line)"/><text x="'+(71+i*102)+'" y="80" text-anchor="middle" font-size="14">'+s[0]+' · '+s[1]+'</text>'});
+  document.getElementById('govSteps').innerHTML=gs;
+
+  /* Alternativas */
+  var alts=[
+   ['A','Atributo data-theme en <html>',1,'Permite fijar el tema antes del primer pintado y declarar color-scheme.'],
+   ['B','Clase en <body>',0,'No permite fijar el tema antes del primer pintado.'],
+   ['C','Script síncrono mínimo en <head>',1,'Evita el parpadeo de tema incorrecto al cargar.'],
+   ['D','Resolver el tema en script.js (defer)',0,'Parpadeo visible al cargar la página.'],
+   ['E','Persistir en cookies',0,'Innecesarias y problemáticas en file://; se elige localStorage con try/catch.']];
+  var ad=document.getElementById('alts'), adt=document.getElementById('altDetail');
+  alts.forEach(function(a){
+    var b=document.createElement('button'); b.className='card '+(a[2]?'ok':'bad'); b.style.cssText='text-align:left;cursor:pointer;font:inherit;color:inherit';
+    b.innerHTML='<strong>'+a[0]+'</strong> <span class="tag '+(a[2]?'ok':'bad')+'">'+(a[2]?'Elegida':'Descartada')+'</span><br>'+a[1];
+    b.onclick=function(){adt.innerHTML='<h3>'+a[0]+' · '+(a[2]?'Elegida':'Descartada')+'</h3>'+a[3]};
+    ad.appendChild(b);
+  });
+
+  /* Requisitos */
+  var reqs=[
+   ['Light and dark theme toggle',['Claro → oscuro (la tabla conserva dimensiones y posiciones)','Oscuro → claro','Búsqueda, resultados y selección se conservan al alternar']],
+   ['Theme initial choice and persistence',['Primera visita: sigue la preferencia del sistema','Elección manual recordada, con prioridad sobre el sistema','Almacenamiento no disponible: funciona en sesión, sin error']],
+   ['Accessible theme control',['Activar con teclado; el foco permanece en el botón','Tema activo anunciado por nombre o estado accesible']]];
+  var rb=document.getElementById('reqs'), rd=document.getElementById('reqDetail');
+  function showReq(i){
+    [].forEach.call(rb.children,function(b,k){b.setAttribute('aria-pressed',k===i)});
+    rd.innerHTML='<h3>'+reqs[i][0]+'</h3><ul>'+reqs[i][1].map(function(s){return '<li>'+s+'</li>'}).join('')+'</ul>';
+  }
+  reqs.forEach(function(r,i){var b=document.createElement('button');b.textContent=r[0];b.style.textAlign='left';b.onclick=function(){showReq(i)};rb.appendChild(b)});
+  showReq(0);
+
+  /* Barras */
+  var files=[['styles.css',1038,'+82'],['script.js',333,'+49'],['DESIGN.md',219,'+10'],['index.html',132,'+20'],['data/elements.js',122,'0']], max=1038, bh='';
+  files.forEach(function(f){bh+='<div class="bar-row"><span class="lb">'+f[0]+'</span><div class="tr"><div class="fl" style="width:'+(f[1]/max*100)+'%">'+f[1]+' ('+f[2]+')</div></div></div>'});
+  document.getElementById('bars').innerHTML=bh;
+
+  /* Verificación */
+  var v=[
+   ['Botón en la zona superior','HECHO','#theme-toggle en index.html; toggleTheme() en script.js.'],
+   ['Tema inicial + elección recordada','HECHO','Script en <head> + localStorage pt-theme.'],
+   ['Almacenamiento no disponible','HECHO','try/catch en lectura y escritura; sin error visible.'],
+   ['Contrastes AA en ambos temas','MARCADO','Tarea 4.1 [x]; sin informe adjunto.'],
+   ['Estabilidad al alternar','MARCADO','Tarea 4.2 [x]; sin informe adjunto.'],
+   ['DESIGN.md actualizado','HECHO','Sección Theme Toggle (tarea 4.4).'],
+   ['Teclado, AT, persistencia, file://','PENDIENTE','Tarea 4.3 sin marcar.']];
+  var tb=document.querySelector('#vtable tbody'), vd=document.getElementById('vDetail');
+  v.forEach(function(r){
+    var tr=document.createElement('tr'); tr.tabIndex=0; tr.style.cursor='pointer';
+    var k=r[1]==='HECHO'?'ok':(r[1]==='MARCADO'?'warn':'bad');
+    tr.innerHTML='<td>'+r[0]+'</td><td><span class="tag '+k+'">'+r[1]+'</span></td>';
+    var f=function(){vd.innerHTML='<h3>'+r[0]+'</h3>'+r[2]};
+    tr.onclick=f; tr.onkeydown=function(e){if(e.key==='Enter')f()}; tb.appendChild(tr);
+  });
+
+  var start=parseInt((location.hash||'').slice(1),10); go(isNaN(start)?0:start-1);
+})();
+</script>
+</body>
+</html>
