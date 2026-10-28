@@ -3,21 +3,25 @@
 ---
 
 - [Fase 3: Preparación de OpenSpec](#fase-3-preparación-de-openspec)
-  - [Paso 1: Customizar la documentación del proyecto (opcional)](#paso-1-customizar-la-documentación-del-proyecto-opcional)
-    - [Documentación del producto](#documentación-del-producto)
-    - [Documentación técnica](#documentación-técnica)
-  - [Paso 2: Configuración de OpenSpec](#paso-2-configuración-de-openspec)
-    - [Configuración de OpenSpec para que utilice las bases documentales](#configuración-de-openspec-para-que-utilice-las-bases-documentales)
+  - [Paso 1: \[Opcional\]  Customizar las bases documentales del proyecto](#paso-1-opcional--customizar-las-bases-documentales-del-proyecto)
+    - [Paso 1.1: Preparar las bases documentales](#paso-11-preparar-las-bases-documentales)
+      - [Documentación del producto](#documentación-del-producto)
+      - [Documentación técnica](#documentación-técnica)
+    - [Paso 1.2: Ubicar de las bases documentales](#paso-12-ubicar-de-las-bases-documentales)
+  - [Paso 2: \[Opcional\] Configuración de OpenSpec](#paso-2-opcional-configuración-de-openspec)
+    - [Paso 2.1:Configuración de OpenSpec para que utilice las bases documentales](#paso-21configuración-de-openspec-para-que-utilice-las-bases-documentales)
   - [Paso 3: \[Opcional\] Añadir plugins/tools de soporte para OpenSpec](#paso-3-opcional-añadir-pluginstools-de-soporte-para-openspec)
     - [OpenSpecWebUI](#openspecwebui)
 
 ---
 
-## Paso 1: Customizar la documentación del proyecto (opcional)
+## Paso 1: [Opcional]  Customizar las bases documentales del proyecto
+
+### Paso 1.1: Preparar las bases documentales
 
 >Este paso es muy importante, si esta customización no se realiza, el asistente de IA usará información genérica del proyecto en lugar de la específica que se quiere utilizar
 
-### Documentación del producto
+#### Documentación del producto
 
 Pasos a seguir:
 
@@ -26,7 +30,7 @@ Pasos a seguir:
 * Modifica los archivos correspondientes para reflejar la información específica del proyecto
 * Guarda los cambios y verifica que la documentación esté completa y correcta
 
-### Documentación técnica
+#### Documentación técnica
 
 Pasos a seguir:
 
@@ -35,11 +39,25 @@ Pasos a seguir:
 * Modifica los archivos correspondientes para reflejar la información técnica específica del proyecto
 * Guarda los cambios y verifica que la documentación técnica esté completa y correcta
 
+### Paso 1.2: Ubicar de las bases documentales
+
+Las bases documentales del proyecto se encuentran en las siguientes rutas:
+
+* Documentación del producto: `/knowledge/product`
+* Documentación técnica: `/knowledge/technical`
+
+Pasos a seguir:
+
+* Verifica que las rutas a las bases documentales sean correctas
+* Asegúrate de que los archivos necesarios existan en las rutas especificadas
+* Copia las bases documentales sobre el directorio raíz del proyecto
+* Verifica que las bases documentales se hayan copiado correctamente al directorio raíz del proyecto
+
 ---
 
-## Paso 2: Configuración de OpenSpec
+## Paso 2: [Opcional] Configuración de OpenSpec
 
-### Configuración de OpenSpec para que utilice las bases documentales
+### Paso 2.1:Configuración de OpenSpec para que utilice las bases documentales
 
 Pre-requisitos
 
@@ -54,20 +72,20 @@ Pasos a seguir:
 
 ```yml
 context: |
-  Project specs (single source of truth): All artifact creation and implementation MUST follow the project's context in knowledge/.
+  Tech stack: HTML, CSS, JavaScript
+  Architecture: SPA (Single Page Application)
+  Project specs (single source of truth): All artifact creation and implementation MUST follow the project's context in knowledge/product/ (business) and knowledge/dev/ (architecture and languages).
 
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.
 rules:
-  # Global: apply knowledge when creating any artifact
+  # Global: apply project knowledge when creating any artifact
   _global:
     - Before creating any artifact, read and apply knowledge/product/*
-    - For development artifacts, read knowledge/product/*
+    - For development artifacts (design, tasks), also read and apply knowledge/dev/**
 ```
 
 * Guarda los cambios realizados en el fichero "config.yaml"
-
-
 
 ---
 
@@ -119,13 +137,10 @@ openspec-webui --no-open
 }
 ```
 
+* Ejecutar el script desde la línea de comandos:
 
-
-
+```bash
+npm run openspec-webui
+```
 
 Esto abrirá un navegador con la interfaz de OpenSpec donde podrás visualizar y gestionar los cambios propuestos de manera interactiva.
-
-  "scripts": {
-    "openspec-webui": "openspec-webui"
-  }
-}

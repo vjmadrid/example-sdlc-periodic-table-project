@@ -12,7 +12,7 @@
 
 * Node.js 20.19 o superior y npm instalados en la máquina
 * Al menos un asistente de IA compatible con OpenSpec (por ejemplo, Claude)
-  * Plugin de IDE ,herramienta CLI y/o aplicación Desktop para tu asistente de IA
+* IDE, IDE + Plugin ,herramienta CLI y/o aplicación Desktop para tu asistente de IA
 * Acceso al repositorio donde quieres activar OpenSpec
 
 ---

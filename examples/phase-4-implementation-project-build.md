@@ -33,7 +33,7 @@ Pasos a seguir:
 1) Con fondo claro y los elementos en color pastel
 2) Que funcione sin necesidad de un servidor web, usando solo estándares HTML, CSS3 y JavaScript (Vainilla)
 3) Que tenga un buscador
-4) Que cuando selecciones un elemento muestre los detalles, sin que la tabla periódica reescale de tamaño.
+4) Que cuando selecciones un elemento muestre los detalles, sin que la tabla periódica reescale de tamaño
 5) Que los lantánidos y actínidos estén separados de la tabla periódica por al menos una fila
 
 # Ejemplo para Codex
@@ -41,7 +41,7 @@ $openspec-propose /opsx:propose Quiero una web con la tabla periódica.
 1) Con fondo claro y los elementos en color pastel
 2) Que funcione sin necesidad de un servidor web, usando solo estándares HTML, CSS3 y JavaScript (Vainilla)
 3) Que tenga un buscador
-4) Que cuando selecciones un elemento muestre los detalles, sin que la tabla periódica reescale de tamaño.
+4) Que cuando selecciones un elemento muestre los detalles, sin que la tabla periódica reescale de tamaño
 5) Que los lantánidos y actínidos estén separados de la tabla periódica por al menos una fila
 ```
 
@@ -56,6 +56,7 @@ Despues de ejecutar el comando `/opsx:propose`, se generará un directorio de ca
 Ejemplo:
 
 ```bash
+# Ejemplo de change con nombre "build-periodic-table-web-app"
 openspec/changes/
   build-periodic-table-web-app/
     .openspec.yaml   # Metadata (schema, estado)
