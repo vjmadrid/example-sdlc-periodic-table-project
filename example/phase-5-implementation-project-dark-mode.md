@@ -17,6 +17,23 @@ codex
 
 ---
 
+## Paso 2: Explorar el change
+
+Pasos a seguir:
+
+* Ejecutar el comando del asistente de IA para explorar el change propuesto:
+
+```bash
+# Comando
+/opsx:propose Tenemos implementado un modo oscuro en la interfaz
+```
+
+* Verificar la respuesta
+
+En este caso no debería existir este cambio todavía, ya que aún no se ha propuesto ni creado formalmente.
+
+---
+
 ## Paso 2: Crear el change
 
 ---
