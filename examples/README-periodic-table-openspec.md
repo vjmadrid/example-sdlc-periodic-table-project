@@ -12,5 +12,3 @@ La elección de este proyecto se debe a varias razones:
 
 * Es familiar: Todos entienden que es una tabla con elementos químicos
 * Permite iteracion: Podemos agregar features incrementalmente
-
-El objetivo no es terminar con un Kanban perfecto, sino que internalices el flujo de trabajo de OpenSpec para aplicarlo a tus propios proyectos.
