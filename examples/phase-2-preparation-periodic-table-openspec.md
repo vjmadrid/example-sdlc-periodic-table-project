@@ -4,7 +4,6 @@
   - [Paso 1: Crear la estructura del proyecto](#paso-1-crear-la-estructura-del-proyecto)
   - [Paso 2: Inicializar OpenSpec](#paso-2-inicializar-openspec)
   - [Paso 3: Verificación de la inicialización de OpenSpec](#paso-3-verificación-de-la-inicialización-de-openspec)
-  - [Paso 4: \[Opcional\] Establecer una interfaz UI "OpenSpecWebUI"](#paso-4-opcional-establecer-una-interfaz-ui-openspecwebui)
 
 ---
 
@@ -141,46 +140,3 @@ openspec view
 
 Verificar que se muestra el resultado de la ejecución de un comando en la consola tipo TUI
 
----
-
-## Paso 4: [Opcional] Establecer una interfaz UI "OpenSpecWebUI"
-
-Recursos:
-
-* [GitHub](https://github.com/oioi555/openspec-webui)
-* [npm](https://www.npmjs.com/package/openspec-webui)
-
-Para habilitar la interfaz web de OpenSpec, sigue estos pasos:
-
-* Instalar la dependencia de OpenSpecWebUI:
-
-```bash
-# Global
-npm install -g openspec-webui
-
-# Proyecto
-npm i openspec-webui
-```
-
-* Iniciar la interfaz web:
-
-```bash
-# Start with default settings (127.0.0.1:3001, auto-open browser)
-openspec-webui
-
-# Use a different port
-openspec-webui --port 8080
-
-# Allow access from other devices on the network
-openspec-webui --host 0.0.0.0
-
-# Start without opening the browser
-openspec-webui --no-open
-```
-
-Esto abrirá un navegador con la interfaz de OpenSpec donde podrás visualizar y gestionar los cambios propuestos de manera interactiva.
-
-  "scripts": {
-    "openspec-webui": "openspec-webui"
-  }
-}
