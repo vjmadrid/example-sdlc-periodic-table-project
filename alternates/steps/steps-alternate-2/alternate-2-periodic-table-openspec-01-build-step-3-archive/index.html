@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tabla periódica</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="data/elements.js"></script>
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#tabla">Saltar a la tabla periódica</a>
+
+  <header class="page-header">
+    <h1>Tabla periódica</h1>
+  </header>
+
+  <main>
+    <noscript>
+      <p class="notice">Esta página necesita JavaScript para mostrar la tabla periódica.</p>
+    </noscript>
+
+    <section class="top" aria-label="Búsqueda, leyenda y ficha">
+      <div class="top-left">
+        <form class="search" role="search" id="search-form">
+          <label for="search-input">Buscar un elemento</label>
+          <div class="search-row">
+            <input id="search-input" type="search" autocomplete="off" spellcheck="false"
+                   placeholder="Nombre, símbolo o número atómico" aria-describedby="search-hint">
+            <button type="button" id="clear-button">Limpiar</button>
+          </div>
+          <p id="search-hint" class="hint">Pulsa «/» para ir al buscador.</p>
+          <p id="search-status" class="status" role="status" aria-live="polite">Mostrando los 118 elementos.</p>
+        </form>
+
+        <section aria-labelledby="legend-title">
+          <h2 id="legend-title" class="section-title">Leyenda</h2>
+          <ul id="legend" class="legend"></ul>
+        </section>
+      </div>
+
+      <aside class="detail" aria-labelledby="detail-title">
+        <h2 id="detail-title" class="section-title">Ficha del elemento</h2>
+        <div id="detail" class="detail-body" role="status" aria-live="polite" aria-atomic="true"></div>
+      </aside>
+    </section>
+
+    <section id="tabla" tabindex="-1" aria-label="Tabla periódica">
+      <div class="table-scroll">
+        <div id="periodic-table" class="periodic-table" role="group" aria-label="Elementos de la tabla periódica"></div>
+      </div>
+      <p class="hint scroll-hint">En pantallas estrechas, desliza la tabla horizontalmente.</p>
+    </section>
+  </main>
+</body>
+</html>
