@@ -24,8 +24,11 @@ Pasos a seguir:
 * Ejecutar el comando del asistente de IA para explorar el change propuesto:
 
 ```bash
-# Comando
-/opsx:propose Tenemos implementado un modo oscuro en la interfaz
+# Ejemplo para Claude
+/opsx:explore Tenemos implementado el un modo oscuro o nocturno en la interfaz
+
+# Ejemplo para Codex
+$openspec-explore Tenemos implementado el un modo oscuro o nocturno en la interfaz
 ```
 
 * Verificar la respuesta
@@ -44,6 +47,8 @@ Pasos a seguir:
 
 * Ejecutar el siguiente comando para proponer un cambio:
 
+Ejemplo sencillo
+
 ```bash
 # Ejemplo para Claude
 /opsx:propose Quiero añadir un botón en la zona superior que facilite cambiar entre el modo oscuro y el modo claro
@@ -52,7 +57,55 @@ Pasos a seguir:
 $openspec-propose Quiero añadir un botón en la zona superior que facilite cambiar entre el modo oscuro y el modo claro
 ```
 
+Ejemplo más avanzado
+
+```bash
+# Comando
+/opsx:propose Quiero implementar un modo oscuro (dark) y un modo nocturno (nocturnal) en la interfaz
+
+Este cambio se solicita para este proyecto como un caso nuevo
+Genera un resumen de los tokens utilizados en la propuesta, sería interesante si se pudiera ver cuántos tokens se han consumido y cómo se distribuyen entre las diferentes partes de la propuesta.
+Genera un resumen de coste estimado del change
+```
+
 Tras el proceso que ha realizado para pensar todo ha decidio llamar al change como: `add-dark-mode-toggle`
+
+#### Generar sobre una tarea JIRA
+
+Pre-requisitos:
+
+* Tener instalado y configurado el MCP de Atlassian
+* Tener creada la tarea JIRA ED-44
+
+Pasos a seguir:
+
+* Verificar que la tarea JIRA ED-44 existe y está accesible desde el MCP de Atlassian
+
+```bash
+Cual es el estado de ED-44 en JIRA
+```
+
+Debería de mostrar la informacion sobre la tarea
+
+* Verificar elementos importantes sobre esta tarea
+
+```bash
+#Ejemplo 1
+Quién es la persona que definió esta necesidad?
+
+#Ejemplo 2
+A quién puedo preguntar si necesito más detalle?
+```
+
+* Lanzar una tarea sobre la implementación del modo oscuro en la interfaz
+
+```bash
+# Comando
+/opsx:propose Quiero que implementes la tarea JIRA ED-44
+Este cambio se solicita para este proyecto como un caso nuevo
+Genera un resumen de los tokens utilizados en la propuesta, sería interesante si se pudiera ver cuántos tokens se han consumido y cómo se distribuyen entre las diferentes partes de la propuesta.
+Genera un resumen de coste estimado del change
+```
 
 ---
 
@@ -138,12 +191,49 @@ Pasos a seguir:
 
 * Una vez revisados y ajustados los artefactos, se puede aplicar el change con:
 
+Ejemplo sencillo
+
 ```bash
 # Ejemplo para Claude
 /opsx:apply add-dark-mode-toggle
 
 # Ejemplo para Codex
 $openspec-apply add-dark-mode-toggle
+```
+
+Ejemplo más avanzado
+
+```bash
+# Ejemplo para Claude
+/opsx:apply add-dark-mode-toggle
+
+Este cambio se solicita para este proyecto como un caso nuevo
+Genera un resumen de los tokens utilizados en la propuesta, sería interesante si se pudiera ver cuántos tokens se han consumido y cómo se distribuyen entre las diferentes partes de la propuesta.
+Genera un resumen de coste estimado del change
+
+# Ejemplo para Codex
+$openspec-apply add-dark-mode-toggle
+
+Este cambio se solicita para este proyecto como un caso nuevo
+Genera un resumen de los tokens utilizados en la propuesta, sería interesante si se pudiera ver cuántos tokens se han consumido y cómo se distribuyen entre las diferentes partes de la propuesta.
+Genera un resumen de coste estimado del change
+```
+
+TEMPLATE CLAUDE
+
+```bash
+/opsx:apply xxx
+
+Este cambio se solicita para este proyecto como un caso nuevo
+Genera un resumen de los tokens utilizados en la propuesta, sería interesante si se pudiera ver cuántos tokens se han consumido y cómo se distribuyen entre las diferentes partes de la propuesta.
+Genera un resumen de coste estimado del change
+
+
+/opsx:apply add-dark-and-nocturnal-modes
+
+Este cambio se solicita para este proyecto como un caso nuevo
+Genera un resumen de los tokens utilizados en la propuesta, sería interesante si se pudiera ver cuántos tokens se han consumido y cómo se distribuyen entre las diferentes partes de la propuesta.
+Genera un resumen de coste estimado del change
 ```
 
 * Verificar que la IA esta usando el change y muestra el progreso de que esta modificando
