@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self'">
+  <title>Tabla periódica de los elementos</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="data/elements.js" defer></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <header class="page-header">
+    <h1>Tabla periódica</h1>
+    <div class="toolbar">
+      <label class="search-label" for="search">Buscar un elemento</label>
+      <input id="search" class="search-input" type="search" autocomplete="off"
+             placeholder="Nombre, símbolo o número atómico (pulsa «/»)">
+      <button id="clear" class="clear-button" type="button">Limpiar</button>
+      <p id="search-status" class="search-status" role="status" aria-live="polite"></p>
+    </div>
+    <section aria-labelledby="legend-title">
+      <h2 id="legend-title" class="section-title">Leyenda de categorías</h2>
+      <ul id="legend" class="legend"></ul>
+    </section>
+  </header>
+
+  <main id="contenido" class="page-main">
+    <noscript><p class="notice">Esta página necesita JavaScript para mostrar la tabla periódica. Actívalo y recarga la página.</p></noscript>
+    <p id="catalog-error" class="notice notice-error" role="alert" hidden></p>
+
+    <section aria-labelledby="table-title">
+      <h2 id="table-title" class="section-title">Elementos</h2>
+      <div class="table-scroll" tabindex="-1">
+        <div id="table-grid" class="table-grid" role="group" aria-label="Tabla periódica de los elementos"></div>
+      </div>
+      <p class="scroll-hint">En pantallas estrechas, desliza la tabla horizontalmente.</p>
+    </section>
+
+    <section class="detail" aria-labelledby="detail-title">
+      <h2 id="detail-title" class="section-title">Ficha del elemento</h2>
+      <p id="selection-announce" class="visually-hidden" role="status" aria-live="polite"></p>
+      <p id="detail-empty" class="detail-empty">Selecciona un elemento de la tabla para ver sus datos.</p>
+      <div id="detail-body" class="detail-body" hidden>
+        <p class="detail-symbol" id="detail-symbol"></p>
+        <dl class="detail-list">
+          <div><dt>Nombre</dt><dd id="detail-name"></dd></div>
+          <div><dt>Número atómico</dt><dd id="detail-number"></dd></div>
+          <div><dt>Masa atómica</dt><dd id="detail-mass"></dd></div>
+          <div><dt>Categoría</dt><dd id="detail-category"></dd></div>
+          <div><dt>Período</dt><dd id="detail-period"></dd></div>
+          <div><dt>Grupo</dt><dd id="detail-group"></dd></div>
+          <div><dt>Configuración electrónica</dt><dd id="detail-config"></dd></div>
+          <div><dt>Electronegatividad</dt><dd id="detail-en"></dd></div>
+        </dl>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

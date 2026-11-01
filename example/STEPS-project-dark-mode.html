@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Implementación Modo Oscuro/Nocturno</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single reading column with a vertical stepper rail; commands sit in tabbed code blocks (Claude / Codex). */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --fg: #1b2230;
+  --muted: #5b6577;
+  --line: #d9dde5;
+  --accent: #1f5fd1;
+  --accent-soft: #e4ecfb;
+  --warn: #9a5b00;
+  --warn-soft: #fbefd9;
+  --code-bg: #141a26;
+  --code-fg: #dfe6f3;
+  --code-comment: #8190a8;
+  --font-display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1420; --surface: #171e2d; --fg: #e4e9f2; --muted: #9aa5ba; --line: #2a3347;
+    --accent: #7fa8f5; --accent-soft: #1d2a47; --warn: #f0b95c; --warn-soft: #33290f;
+    --code-bg: #0a0e17; --code-fg: #dfe6f3; --code-comment: #7787a1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1420; --surface: #171e2d; --fg: #e4e9f2; --muted: #9aa5ba; --line: #2a3347;
+  --accent: #7fa8f5; --accent-soft: #1d2a47; --warn: #f0b95c; --warn-soft: #33290f;
+  --code-bg: #0a0e17; --code-fg: #dfe6f3; --code-comment: #7787a1;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  padding-block: 40px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 800px; margin: 0 auto; display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2rem, 6vw, 3rem); letter-spacing: -0.02em; }
+h2 { font-size: 1.5rem; letter-spacing: -0.01em; }
+h3 { font-size: 1.1rem; }
+p { margin: 0; max-width: 65ch; }
+code { font-family: var(--font-mono); font-size: 0.88em; background: var(--accent-soft); padding: 1px 6px; border-radius: 4px; overflow-wrap: anywhere; }
+.eyebrow { font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+header { display: grid; gap: 16px; }
+header p { color: var(--muted); font-size: 1.08rem; }
+
+/* flow overview */
+.flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; list-style: none; padding: 0; margin: 0; }
+.flow li { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid; gap: 4px; align-content: start; }
+.flow b { font-family: var(--font-display); font-size: 0.98rem; }
+.flow span { font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
+.flow code { background: none; padding: 0; color: var(--accent); font-size: 0.78rem; }
+.flow .opt { border-style: dashed; }
+@media (max-width: 640px) { .flow { grid-template-columns: 1fr; } }
+
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.facts div { border-top: 2px solid var(--accent); padding-top: 8px; }
+.facts dt { font-family: var(--font-mono); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.facts dd { margin: 2px 0 0; font-weight: 500; overflow-wrap: anywhere; }
+
+/* stepper */
+.steps { display: grid; gap: 28px; }
+.step { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 16px; }
+.rail { display: flex; flex-direction: column; align-items: center; }
+.rail .n { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: var(--bg); font-family: var(--font-display); font-weight: 700; display: grid; place-items: center; flex: none; }
+.rail.optional .n { background: var(--surface); color: var(--accent); border: 2px dashed var(--accent); }
+.rail::after { content: ""; flex: 1; width: 2px; background: var(--line); margin-top: 6px; }
+.step:last-child .rail::after { display: none; }
+.body { display: grid; gap: 12px; padding-bottom: 8px; min-width: 0; align-content: start; }
+.tag { display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 1px 7px; margin-left: 8px; vertical-align: middle; }
+.sub { display: grid; gap: 12px; border-left: 2px solid var(--line); padding-left: 16px; min-width: 0; }
+ul.list { margin: 0; padding-left: 1.2rem; display: grid; gap: 4px; max-width: 65ch; }
+
+.note { background: var(--accent-soft); border-radius: 8px; padding: 12px 16px; max-width: 65ch; font-size: 0.95rem; }
+.note.warn { background: var(--warn-soft); }
+.note b { color: var(--accent); }
+.note.warn b { color: var(--warn); }
+
+/* tree */
+.tree { overflow-x: auto; }
+
+/* code */
+.code { background: var(--code-bg); border-radius: 8px; overflow: hidden; min-width: 0; }
+.code-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px 6px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.code-head .label { font-family: var(--font-mono); font-size: 0.74rem; color: var(--code-comment); }
+.tabs { display: flex; gap: 4px; }
+button { font: inherit; cursor: pointer; }
+.tabs button, .copy { font-family: var(--font-mono); font-size: 0.74rem; background: transparent; color: var(--code-fg); border: 1px solid rgba(255,255,255,0.18); border-radius: 4px; padding: 3px 9px; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.copy:hover, .tabs button:hover { border-color: var(--accent); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+pre { margin: 0; padding: 14px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.84rem; line-height: 1.6; color: var(--code-fg); }
+pre .c { color: var(--code-comment); }
+pre .ok { color: #7fd6a0; }
+.pane[hidden] { display: none !important; }
+
+h2.sec { padding-top: 8px; border-top: 1px solid var(--line); }
+.review { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.review div { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: grid; gap: 4px; align-content: start; }
+.review b { font-family: var(--font-display); }
+.review span { font-size: 0.9rem; color: var(--muted); }
+.cmp { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.94rem; min-width: 460px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+footer { color: var(--muted); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">Fase 5 · Implementación · OpenSpec</span>
+  <h1>Añadir el modo oscuro, paso a paso</h1>
+  <p>Este documento recorre un change completo de OpenSpec sobre el proyecto de la tabla periódica: desde abrir el asistente de IA hasta archivar el cambio. El ejemplo concreto es un botón en la zona superior que alterna entre modo claro y oscuro.</p>
+</header>
+
+<section aria-labelledby="flow-h" style="display:grid;gap:16px">
+  <h2 id="flow-h">El recorrido en cinco movimientos</h2>
+  <ol class="flow">
+    <li class="opt"><b>Explorar</b><span>Comprobar si el modo oscuro ya existe. Opcional.</span><code>/opsx:explore</code></li>
+    <li><b>Proponer</b><span>La IA crea el change y sus cuatro artefactos.</span><code>/opsx:propose</code></li>
+    <li><b>Revisar</b><span>Una persona valida los borradores.</span><code>editar .md</code></li>
+    <li><b>Aplicar</b><span>La IA implementa siguiendo <code>tasks.md</code>.</span><code>/opsx:apply</code></li>
+    <li><b>Archivar</b><span>Verificar (perfil EXPANDED) y cerrar.</span><code>/opsx:archive</code></li>
+  </ol>
+  <dl class="facts">
+    <div><dt>Change</dt><dd><code>add-dark-mode-toggle</code></dd></div>
+    <div><dt>Ticket JIRA</dt><dd>ED-44 (vía MCP de Atlassian)</dd></div>
+    <div><dt>Asistentes</dt><dd>Claude Code (<code>/opsx:</code>) y Codex (<code>$openspec-</code>)</dd></div>
+    <div><dt>Esquema</dt><dd><code>spec-driven</code></dd></div>
+  </dl>
+</section>
+
+<section class="steps" aria-label="Pasos">
+
+  <div class="step">
+    <div class="rail"><div class="n">1</div></div>
+    <div class="body">
+      <h3>Arrancar el asistente de IA</h3>
+      <p>Desde la terminal, dentro de la carpeta del proyecto, se lanza el asistente. El ejemplo usa Codex.</p>
+      <div class="code"><div class="code-head"><span class="label">terminal</span><button class="copy" type="button">Copiar</button></div><pre>codex</pre></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="rail optional"><div class="n">2</div></div>
+    <div class="body">
+      <h3>Explorar el change <span class="tag">opcional</span></h3>
+      <p>Antes de proponer nada, se pregunta al asistente si el modo oscuro o nocturno ya está implementado.</p>
+      <div class="code" data-tabs><div class="code-head"><div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true">Claude</button><button type="button" role="tab" aria-selected="false">Codex</button></div><button class="copy" type="button">Copiar</button></div>
+<pre class="pane">/opsx:explore Tenemos implementado el modo oscuro o el modo nocturno en la interfaz</pre>
+<pre class="pane" hidden>$openspec-explore Tenemos implementado el modo oscuro o el modo nocturno en la interfaz</pre></div>
+      <div class="note"><b>Resultado esperado.</b> No debería existir ese cambio todavía, porque aún no se ha propuesto ni creado de forma formal.</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="rail"><div class="n">3</div></div>
+    <div class="body">
+      <h3>Crear el change</h3>
+      <p>Se hace con <code>/opsx:propose</code>. Hay tres formas de pedirlo, de menos a más contexto.</p>
+
+      <div class="sub">
+        <h3>3.1 Proponer el cambio</h3>
+        <p><b>Versión sencilla.</b> Una frase con lo que se quiere.</p>
+        <div class="code" data-tabs><div class="code-head"><div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true">Claude</button><button type="button" role="tab" aria-selected="false">Codex</button></div><button class="copy" type="button">Copiar</button></div>
+<pre class="pane">/opsx:propose Quiero añadir un botón en la zona superior que facilite cambiar entre el modo oscuro y el modo claro</pre>
+<pre class="pane" hidden>$openspec-propose Quiero añadir un botón en la zona superior que facilite cambiar entre el modo oscuro y el modo claro</pre></div>
+
+        <p><b>Versión avanzada.</b> Añade el alcance (dark y nocturnal), indica que es un caso nuevo y pide un resumen de tokens y de coste.</p>
+        <div class="code"><div class="code-head"><span class="label">prompt</span><button class="copy" type="button">Copiar</button></div>
+<pre>/opsx:propose Quiero implementar un modo oscuro (dark) y un modo nocturno (nocturnal) en la interfaz
+
+Este cambio se solicita para este proyecto como un caso nuevo
+Genera un resumen de los tokens utilizados en la propuesta, sería interesante si se pudiera ver cuántos tokens se han consumido y cómo se distribuyen entre las diferentes partes de la propuesta.
+Genera un resumen de coste estimado del change</pre></div>
+        <p>Tras razonarlo, la IA bautiza el change como <code>add-dark-mode-toggle</code>.</p>
+
+        <p><b>Partiendo de un ticket JIRA.</b> Requiere el MCP de Atlassian configurado y la tarea ED-44 creada.</p>
+        <ul class="list">
+          <li>Comprobar que la tarea es accesible: <code>Cual es el estado de ED-44 en JIRA</code>.</li>
+          <li>Averiguar quién definió la necesidad y a quién preguntar por más detalle.</li>
+          <li>Pedir la propuesta a partir del ticket.</li>
+        </ul>
+        <div class="code"><div class="code-head"><span class="label">prompt</span><button class="copy" type="button">Copiar</button></div>
+<pre>/opsx:propose Quiero que implementes la tarea JIRA ED-44
+Este cambio se solicita para este proyecto como un caso nuevo
+Genera un resumen de los tokens utilizados en la propuesta, sería interesante si se pudiera ver cuántos tokens se han consumido y cómo se distribuyen entre las diferentes partes de la propuesta.
+Genera un resumen de coste estimado del change</pre></div>
+      </div>
+
+      <div class="sub">
+        <h3>3.2 Verificar la estructura generada</h3>
+        <p>Se crea una carpeta del change con metadatos y los borradores de los artefactos.</p>
+        <div class="code tree"><div class="code-head"><span class="label">openspec/changes/</span></div>
+<pre>add-dark-mode-toggle/
+  .openspec.yaml   <span class="c"># Metadata (schema, estado)</span>
+  proposal.md      <span class="c"># El "qué" y "por qué"</span>
+  design.md        <span class="c"># El "cómo"</span>
+  tasks.md         <span class="c"># Lista de tareas</span>
+  specs/           <span class="c"># Delta specs</span>
+    data-model/
+      spec.md</pre></div>
+      </div>
+
+      <div class="sub">
+        <h3>3.3 Comprobar el estado <span class="tag">opcional</span></h3>
+        <div class="code"><div class="code-head"><span class="label">terminal</span><button class="copy" type="button">Copiar</button></div>
+<pre>openspec status --change "add-dark-mode-toggle"
+
+<span class="c"># Respuesta</span>
+Change: add-dark-mode-toggle
+Schema: spec-driven
+Progress: 4/4 artifacts complete
+
+<span class="ok">[x]</span> proposal
+<span class="ok">[x]</span> specs
+<span class="ok">[x]</span> design
+<span class="ok">[x]</span> tasks
+
+All planning artifacts complete!</pre></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="rail"><div class="n">4</div></div>
+    <div class="body">
+      <h3>Revisar los artefactos</h3>
+      <p>Los artefactos generados son borradores de partida y siempre se revisan. Se pueden enriquecer con más escenarios Gherkin, más detalle de diseño o más tareas.</p>
+      <div class="review">
+        <div><b>¿Alcance correcto?</b><span>Ni demasiado grande ni demasiado pequeño.</span></div>
+        <div><b>¿Specs completas?</b><span>Los escenarios Gherkin cubren los casos relevantes.</span></div>
+        <div><b>¿Design coherente?</b><span>Las decisiones encajan con el proyecto.</span></div>
+        <div><b>¿Tasks atómicas?</b><span>Cada tarea produce un resultado verificable.</span></div>
+      </div>
+      <p>Se puede editar cualquier <code>.md</code> a mano con el editor, o pedir a la IA que ayude con los ajustes.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="rail"><div class="n">5</div></div>
+    <div class="body">
+      <h3>Implementar el change</h3>
+
+      <div class="sub">
+        <h3>5.1 Aplicar con <code>/opsx:apply</code></h3>
+        <p>Con los artefactos revisados, se aplica el change. La versión avanzada repite las peticiones de tokens y coste y añade una restricción: no tocar el ticket de JIRA.</p>
+        <div class="code" data-tabs><div class="code-head"><div class="tabs" role="tablist"><button type="button" role="tab" aria-selected="true">Claude</button><button type="button" role="tab" aria-selected="false">Codex</button></div><button class="copy" type="button">Copiar</button></div>
+<pre class="pane">/opsx:apply add-dark-mode-toggle
+
+Este cambio se solicita para este proyecto como un caso nuevo
+Genera un resumen de los tokens utilizados en la propuesta, sería interesante si se pudiera ver cuántos tokens se han consumido y cómo se distribuyen entre las diferentes partes de la propuesta.
+Genera un resumen de coste estimado del change
+No modifiques el ticket de JIRA</pre>
+<pre class="pane" hidden>$openspec-apply add-dark-mode-toggle
+
+Este cambio se solicita para este proyecto como un caso nuevo
+Genera un resumen de los tokens utilizados en la propuesta, sería interesante si se pudiera ver cuántos tokens se han consumido y cómo se distribuyen entre las diferentes partes de la propuesta.
+Genera un resumen de coste estimado del change
+No modifiques el ticket de JIRA</pre></div>
+        <p>Mientras trabaja, hay que comprobar que la IA usa el change correcto y que muestra qué va modificando.</p>
+      </div>
+
+      <div class="sub">
+        <h3>5.2 Verificar el resultado</h3>
+        <div class="code"><div class="code-head"><span class="label">terminal</span><button class="copy" type="button">Copiar</button></div>
+<pre>openspec status                              <span class="c"># Interactivo</span>
+openspec status --change "&lt;CHANGE&gt;"          <span class="c"># Cambio específico</span>
+openspec status --change "&lt;CHANGE&gt;" --json   <span class="c"># Para agentes</span></pre></div>
+        <p>La respuesta tiene el mismo formato que en el paso 3.3. Después se revisa <code>tasks.md</code> y se confirma que todas las tareas están completadas.</p>
+        <div class="note warn"><b>Ojo.</b> <code>openspec status</code> informa de que los artefactos de planificación están completos. No demuestra que el código esté terminado. Esa señal la da <code>tasks.md</code>.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="rail"><div class="n">6</div></div>
+    <div class="body">
+      <h3>Verificar y archivar</h3>
+      <p>Lo que se puede hacer depende del perfil de trabajo.</p>
+      <div class="cmp"><table>
+        <thead><tr><th>Perfil</th><th>Qué permite</th><th>Comando</th></tr></thead>
+        <tbody>
+          <tr><td><b>CORE</b></td><td>Solo archivar</td><td><code>/opsx:archive add-dark-mode-toggle</code></td></tr>
+          <tr><td><b>EXPANDED</b></td><td>Verificar antes de archivar</td><td><code>/opsx:verify add-dark-mode-toggle</code></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</section>
+
+<footer>Fuente: <code>phase-5-implementation-project-dark-mode.md</code>. El documento también incluye una plantilla de prompt para Claude con <code>/opsx:apply xxx</code>, donde <code>xxx</code> es el nombre del change.</footer>
+</div>
+
+<script>
+document.querySelectorAll('.code').forEach(function (block) {
+  var panes = block.querySelectorAll('pre.pane');
+  var tabs = block.querySelectorAll('[role="tab"]');
+  tabs.forEach(function (tab, i) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t, j) { t.setAttribute('aria-selected', String(i === j)); });
+      panes.forEach(function (p, j) { p.hidden = i !== j; });
+    });
+  });
+  var btn = block.querySelector('.copy');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    var pre = block.querySelector('pre.pane:not([hidden])') || block.querySelector('pre');
+    var text = pre.innerText;
+    function done(msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = 'Copiar'; }, 1500); }
+    try {
+      navigator.clipboard.writeText(text).then(function () { done('Copiado'); }, function () { select(pre); done('Selecciona y copia'); });
+    } catch (e) { select(pre); done('Selecciona y copia'); }
+  });
+});
+function select(el) {
+  var r = document.createRange(); r.selectNodeContents(el);
+  var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+}
+</script>
+</body>
+</html>
